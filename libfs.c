@@ -211,10 +211,8 @@ elf_libpath_ctor(telf_ctx *ctx)
 			unsigned int x;
 			char path[PATH_MAX] = "";
                         char name[1024] = "";
-                        char *p = NULL;
                         char *buf = NULL;
                         telf_libpath *lp = NULL;
-                        char *objname = NULL;
 
                         if (! strstr(cmd, " => "))
                                 continue;
@@ -232,13 +230,6 @@ elf_libpath_ctor(telf_ctx *ctx)
                         }
 
                         list_add(ctx->libpath, lp);
-
-                        objname = strdup(name);
-                        if (! objname) {
-                                ERR("strdup: %s", strerror(errno));
-                                ret = ELF_ENOMEM;
-                                goto end;
-                        }
 
                         entry = elf_obj_new(ctx, name, libfs_obj,
                                             ELF_LIBS_ENTRY,
