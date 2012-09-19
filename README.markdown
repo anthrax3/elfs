@@ -61,27 +61,6 @@ Check the libraries: display the list and their path on the file system
     $ ls -l /tmp/elf/libs
     total 0
     lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libc.so.6 -> /lib/x86_64-linux-gnu/libc.so.6
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libdl.so.2 -> /lib/x86_64-linux-gnu/libdl.so.2
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libexpat.so.1 -> /lib/x86_64-linux-gnu/libexpat.so.1
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libfontconfig.so.1 -> /usr/lib/x86_64-linux-gnu/libfontconfig.so.1
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libfreetype.so.6 -> /usr/lib/x86_64-linux-gnu/libfreetype.so.6
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libICE.so.6 -> /usr/lib/x86_64-linux-gnu/libICE.so.6
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libm.so.6 -> /lib/x86_64-linux-gnu/libm.so.6
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libSM.so.6 -> /usr/lib/x86_64-linux-gnu/libSM.so.6
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libuuid.so.1 -> /lib/x86_64-linux-gnu/libuuid.so.1
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libX11.so.6 -> /usr/lib/x86_64-linux-gnu/libX11.so.6
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libXau.so.6 -> /usr/lib/x86_64-linux-gnu/libXau.so.6
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libXaw.so.7 -> /usr/lib/libXaw.so.7
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libxcb.so.1 -> /usr/lib/x86_64-linux-gnu/libxcb.so.1
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libXdmcp.so.6 -> /usr/lib/x86_64-linux-gnu/libXdmcp.so.6
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libXext.so.6 -> /usr/lib/x86_64-linux-gnu/libXext.so.6
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libXft.so.2 -> /usr/lib/x86_64-linux-gnu/libXft.so.2
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libxkbfile.so.1 -> /usr/lib/libxkbfile.so.1
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libXmu.so.6 -> /usr/lib/libXmu.so.6
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libXpm.so.4 -> /usr/lib/libXpm.so.4
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libXrender.so.1 -> /usr/lib/x86_64-linux-gnu/libXrender.so.1
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libXt.so.6 -> /usr/lib/x86_64-linux-gnu/libXt.so.6
-    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libz.so.1 -> /lib/x86_64-linux-gnu/libz.so.1
     lrwxrwxrwx 0 root root 0 1970-01-01 01:00 linux-vdso.so.1 ->
 
 
@@ -199,15 +178,14 @@ use at your own risk as you might encounter strange/wrong behavior.  Here is a s
     $ sudo elfs -p `pidof xclock` /tmp/elf
     $ sudo ls -l /tmp/elf/libs
     total 0
-    -rwxrwxrwx 0 root root  9 1970-01-01 01:00 libc.so.6
-    -rwxrwxrwx 0 root root  9 1970-01-01 01:00 libm.so.6
-    -rwxrwxrwx 0 root root 11 1970-01-01 01:00 libX11.so.6
-    -rwxrwxrwx 0 root root 11 1970-01-01 01:00 libXaw.so.7
-    -rwxrwxrwx 0 root root 11 1970-01-01 01:00 libXft.so.2
-    -rwxrwxrwx 0 root root 15 1970-01-01 01:00 libxkbfile.so.1
-    -rwxrwxrwx 0 root root 11 1970-01-01 01:00 libXmu.so.6
-    -rwxrwxrwx 0 root root 15 1970-01-01 01:00 libXrender.so.1
-    -rwxrwxrwx 0 root root 10 1970-01-01 01:00 libXt.so.6
+    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libc.so.6 -> /lib/x86_64-linux-gnu/libc.so.6
+    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libdl.so.2 -> /lib/x86_64-linux-gnu/libdl.so.2
+    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libexpat.so.1 -> /lib/x86_64-linux-gnu/libexpat.so.1
+    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libfontconfig.so.1 -> /usr/lib/x86_64-linux-gnu/libfontconfig.so.1
+    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libfreetype.so.6 -> /usr/lib/x86_64-linux-gnu/libfreetype.so.6
+    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libICE.so.6 -> /usr/lib/x86_64-linux-gnu/libICE.so.6
+    lrwxrwxrwx 0 root root 0 1970-01-01 01:00 libm.so.6 -> /lib/x86_64-linux-gnu/libm.so.6
+    [...]
 
 
 For more information, just type:
