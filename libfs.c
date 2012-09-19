@@ -8,8 +8,67 @@
 #include "libfs.h"
 
 
-#define ELF_DEFAULT_LIBPATH "/usr/lib/"
-#define LD_SO_CONF "/etc/ld.so.conf"
+typedef struct {
+        char *libname;
+        char *libpath;
+} telf_libpath;
+
+static int
+elf_libpath_cmp(void *key_,
+                void *value_)
+{
+        char *key = key_;
+        telf_libpath *value = value_;
+
+        return strcmp(key, value->libname);
+}
+
+static void
+elf_libpath_free(void *lp_)
+{
+        telf_libpath *lp = lp_;
+
+        if (lp) {
+                if (lp->libname)
+                        free(lp->libname);
+
+                if (lp->libpath)
+                        free(lp->libpath);
+
+                free(lp);
+        }
+}
+
+static telf_libpath *
+elf_libpath_new(char *name,
+                char *path)
+{
+        telf_libpath *lp = NULL;
+
+        lp = malloc(sizeof *lp);
+        if (! lp) {
+                ERR("malloc: %s", strerror(errno));
+                goto err;
+        }
+
+        lp->libname = strdup(name);
+        if (! lp->libname) {
+                ERR("strdup: %s", strerror(errno));
+                goto err;
+        }
+
+        lp->libpath = strdup(path);
+        if (! lp->libpath) {
+                ERR("strdup: %s", strerror(errno));
+                goto err;
+        }
+
+        return lp;
+
+  err:
+        elf_libpath_free(lp);
+        return NULL;
+}
 
 static telf_status
 libfs_open(char *path,
@@ -54,36 +113,30 @@ libfs_readlink(void *obj_hdl,
 {
         telf_obj *obj = obj_hdl;
         telf_status ret;
-        Elf64_Shdr *shdr = NULL;
-        char path[PATH_MAX];
-        char *buf = NULL;
         size_t buf_len = 0;
-        int i;
+        char *buf = NULL;
+        telf_libpath *lp = NULL;
+        int iret;
 
         elf_obj_lock(obj);
 
-        for (i = 0; i < list_get_size(obj->ctx->libpath); i++) {
-                char *lp = list_get_nth(obj->ctx->libpath, i);
-                char path[PATH_MAX] = "";
-
-                snprintf(path, sizeof path, "%s/%s", lp, obj->name);
-
-                if (-1 == access(path, R_OK)) {
+        lp = list_get(obj->ctx->libpath, obj->name);
+        if (lp) {
+                iret = access(lp->libpath, R_OK);
+                if (-1 == iret) {
                         if (ENOENT != errno)
                                 ERR("access: %s", strerror(errno));
 
-                        continue;
-                }
+                } else {
+                        buf = strdup(lp->libpath);
+                        if (! buf) {
+                                ERR("malloc: %s", strerror(errno));
+                                ret = ELF_ENOMEM;
+                                goto end;
+                        }
 
-                buf = strdup(path);
-                if (! buf) {
-                        ERR("malloc: %s", strerror(errno));
-                        ret = ELF_ENOMEM;
-                        goto end;
+                        buf_len = strlen(buf);
                 }
-
-                buf_len = strlen(buf);
-                break;
         }
 
         ret = ELF_SUCCESS;
@@ -110,19 +163,23 @@ libfs_override_driver(telf_fs_driver *driver)
         driver->readlink = libfs_readlink;
 }
 
-
 static telf_status
-elf_set_default_libpath(telf_ctx *ctx)
+elf_libpath_ctor(telf_ctx *ctx)
 {
         telf_status ret;
-        char path[PATH_MAX];
-        FILE *fp;
-        char *line = NULL;
-        size_t len = 0;
-        ssize_t read;
-        char inc[128] = "";
-        FILE *cat = NULL;
-        char *default_libpath = NULL;
+        telf_status rc;
+        int iret;
+        tlist *libpath = NULL;
+        FILE *ldd = NULL;
+        telf_obj *libfs_obj = NULL;
+        telf_obj *entry = NULL;
+
+        rc = elf_namei(ctx, "/libs", &libfs_obj);
+        if (ELF_SUCCESS != rc) {
+                ERR("can't find '/libfs' object: %s", elf_status_to_str(rc));
+                ret = rc;
+                goto end;
+        }
 
         ctx->libpath = list_new();
         if (! ctx->libpath) {
@@ -131,129 +188,84 @@ elf_set_default_libpath(telf_ctx *ctx)
                 goto end;
         }
 
-        default_libpath = strdup(ELF_DEFAULT_LIBPATH);
-        if (! default_libpath) {
-                ERR("strdup: %s", strerror(errno));
-                ret = ELF_ENOMEM;
-                goto end;
-        }
+        list_set_cmp_func(ctx->libpath, elf_libpath_cmp);
+        list_set_free_func(ctx->libpath, elf_libpath_free);
 
-        list_add(ctx->libpath, default_libpath);
+	do {
+		char cmd[1024] = "";
 
-        fp = fopen(LD_SO_CONF, "r");
-        if (! fp) {
-                ERR("fopen(%s): %s", LD_SO_CONF, strerror(errno));
-                ret = ELF_FAILURE;
-                goto end;
-        }
+		snprintf(cmd, sizeof cmd - 1, "ldd %s", ctx->binpath);
 
-        /* XXX/TODO: this is so ugly I can't even look at this code..
-         *   1. respect all the possible formats for ld.so.conf (not only the
-         *      'include' stuff)
-         *   2. real error handling, please :/
-         **/
-        while ((read = getline(&line, &len, fp)) != -1) {
-                if (strstr(line, "include ")) {
-                        char cmd[1024] = "";
-                        char out[1024] = "";
-                        sscanf(line, "include %1024s", out);
-                        snprintf(cmd, sizeof cmd, "cat %s", out);
+                ldd = popen(cmd, "r");
+                if (! ldd) {
+                        ERR("popen(%s): %s", cmd, strerror(errno));
+                        ret = ELF_FAILURE;
+                        goto end;
+                }
 
-                        cat = popen(cmd, "r");
-                        if (! cat) {
-                                ERR("popen: %s", strerror(errno));
-                                ret = ELF_FAILURE;
+		while (fgets(cmd, sizeof cmd - 1, ldd)) {
+			unsigned int x;
+			char path[PATH_MAX] = "";
+                        char name[1024] = "";
+                        char *p = NULL;
+                        char *buf = NULL;
+                        telf_libpath *lp = NULL;
+                        char *objname = NULL;
+
+                        if (! strstr(cmd, " => "))
+                                continue;
+
+			sscanf(cmd, "%1023s => %1023s (%x)", name, path, &x);
+
+                        if (0 == path[0] || '/' == name[0])
+                                continue;
+
+                        lp = elf_libpath_new(name, path);
+                        if (! lp) {
+                                ERR("allocation issue");
+                                ret = ELF_ENOMEM;
                                 goto end;
                         }
 
-                        while (fgets(cmd, sizeof cmd - 1, cat)) {
-                                char *libpath = NULL;
+                        list_add(ctx->libpath, lp);
 
-                                /* remove trailing EOL */
-                                cmd[strlen(cmd) - 1] = 0;
-
-                                libpath = strdup(cmd);
-                                if (! libpath) {
-                                        ERR("malloc: %s", strerror(errno));
-                                        ret = ELF_ENOMEM;
-                                        goto end;
-                                }
-
-                                list_add(ctx->libpath, libpath);
+                        objname = strdup(name);
+                        if (! objname) {
+                                ERR("strdup: %s", strerror(errno));
+                                ret = ELF_ENOMEM;
+                                goto end;
                         }
-                }
-        }
 
-        ret = 0;
+                        entry = elf_obj_new(ctx, name, libfs_obj,
+                                            ELF_LIBS_ENTRY,
+                                            ELF_S_IFLNK);
+                        if (! entry) {
+                                ERR("can't build entry '%s'", name);
+                                continue;
+                        }
+
+                        libfs_override_driver(entry->driver);
+                        list_add(libfs_obj->entries, entry);
+		}
+
+	} while (0);
+
+        ret = ELF_SUCCESS;
   end:
-        if (fp)
-                fclose(fp);
-
-        if (line)
-                free(line);
-
-        if (cat)
-                pclose(cat);
+	if (ldd)
+		pclose(ldd);
 
         return ret;
 }
+
 
 telf_status
 libfs_build(telf_ctx *ctx)
 {
         telf_status ret;
         telf_status rc;
-        telf_obj *libfs_obj = NULL;
-        telf_obj *entry = NULL;
-        int i;
-        Elf64_Shdr *shdr = NULL;
-        Elf64_Dyn *dyn = NULL;
 
-        /* sanity check */
-        rc = elf_namei(ctx, "/libs", &libfs_obj);
-        if (ELF_SUCCESS != rc) {
-                ERR("can't find '/libfs' object: %s", elf_status_to_str(rc));
-                ret = rc;
-                goto end;
-        }
-
-        shdr = elf_getsectionbytype(ctx, SHT_DYNAMIC);
-        if (! shdr) {
-                ERR("can't find any SHT_DYNAMIC section");
-                ret = ELF_ENOENT;
-                goto end;
-        }
-
-        /* get all DT_NEEDED strings. */
-        for (i = 0; i < shdr->sh_size / sizeof(Elf64_Dyn); i++) {
-                telf_obj *entry = NULL;
-                char *libname = NULL;
-
-                dyn = (Elf64_Dyn *) (ctx->addr + shdr->sh_offset) + i;
-
-                if (DT_NEEDED != dyn->d_tag)
-                        continue;
-
-                libname = strdup(ctx->dstrtab + dyn->d_un.d_val);
-                if (! libname) {
-                        ERR("strdup(%s): %s", libname, strerror(errno));
-                        ret = ELF_ENOMEM;
-                        goto end;
-                }
-
-                entry = elf_obj_new(ctx, libname, libfs_obj,
-                                    ELF_LIBS_ENTRY,
-                                    ELF_S_IFLNK);
-                if (! entry) {
-                        ERR("can't build entry '%s'", libname);
-                        continue;
-                }
-
-                libfs_override_driver(entry->driver);
-                list_add(libfs_obj->entries, entry);
-        }
-
-        rc = elf_set_default_libpath(ctx);
+        rc = elf_libpath_ctor(ctx);
         if (ELF_SUCCESS != rc) {
                 ERR("Can't set libpath list");
                 ret = rc;

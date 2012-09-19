@@ -12,6 +12,7 @@ typedef struct node {
 
 struct list {
         tnode *head;
+        tnode *tail;
 
         int size;
 
@@ -58,6 +59,7 @@ list_new(void)
                 return NULL;
 
         q->head = NULL;
+        q->tail = NULL;
         q->size = 0;
 
         /* default: the stdlib free() function */
@@ -91,6 +93,31 @@ list_get_size(tlist *q)
 }
 
 void
+list_add_tail(tlist *q,
+              void *elem)
+{
+        if (! elem)
+                return;
+
+        tnode *node = malloc(sizeof *node);
+        if (! node) {
+                perror("malloc");
+                return;
+        }
+
+        node->elem = elem;
+        node->next = NULL;
+
+        if (! q->head)
+                list_add(q, elem);
+        else {
+                q->tail->next = node;
+                q->tail = node;
+                q->size++;
+        }
+}
+
+void
 list_add(tlist *q,
          void *elem)
 {
@@ -103,8 +130,12 @@ list_add(tlist *q,
                 return;
         }
 
-        node->elem = elem;
+        /* first add */
+        if (! q->tail)
+                q->tail = node;
+
         node->next = q->head;
+        node->elem = elem;
         q->head = node;
 
         q->size++;
@@ -169,29 +200,6 @@ list_add_uniq(tlist *q,
         q->size++;
 
         return 0;
-}
-
-void
-list_extract(tlist *q,
-             void *elem)
-{
-        if (! q || 0 == q->size)
-                return;
-
-        tnode *node = q->head;
-        tnode *backup = node;
-
-        while (node) {
-                if (0 == q->cmp_func(elem, node->elem)) {
-                        backup->next = node->next;
-                        q->size--;
-
-                        return;
-                }
-
-                backup = node;
-                node = node->next;
-        }
 }
 
 void
