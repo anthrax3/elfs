@@ -9,8 +9,8 @@
 
 
 typedef struct {
-        char *libname;
-        char *libpath;
+        char *l_name;
+        char *l_path;
 } telf_libpath;
 
 static int
@@ -20,7 +20,7 @@ elf_libpath_cmp(void *key_,
         char *key = key_;
         telf_libpath *value = value_;
 
-        return strcmp(key, value->libname);
+        return strcmp(key, value->l_name);
 }
 
 static void
@@ -29,11 +29,11 @@ elf_libpath_free(void *lp_)
         telf_libpath *lp = lp_;
 
         if (lp) {
-                if (lp->libname)
-                        free(lp->libname);
+                if (lp->l_name)
+                        free(lp->l_name);
 
-                if (lp->libpath)
-                        free(lp->libpath);
+                if (lp->l_path)
+                        free(lp->l_path);
 
                 free(lp);
         }
@@ -51,14 +51,14 @@ elf_libpath_new(char *name,
                 goto err;
         }
 
-        lp->libname = strdup(name);
-        if (! lp->libname) {
+        lp->l_name = strdup(name);
+        if (! lp->l_name) {
                 ERR("strdup: %s", strerror(errno));
                 goto err;
         }
 
-        lp->libpath = strdup(path);
-        if (! lp->libpath) {
+        lp->l_path = strdup(path);
+        if (! lp->l_path) {
                 ERR("strdup: %s", strerror(errno));
                 goto err;
         }
@@ -88,13 +88,17 @@ libfs_getattr(void *obj_hdl,
         telf_status rc;
         telf_stat st;
         int i;
+        telf_libpath *lp;
 
         elf_obj_lock(obj);
 
         memset(&st, 0, sizeof st);
         st.st_mode |= ELF_S_IFLNK;
         st.st_mode |= ELF_S_IRWXU|ELF_S_IRWXG|ELF_S_IRWXO;
-        st.st_size = 0;
+
+        lp = list_get(obj->ctx->libpath, obj->name);
+        if (lp)
+                st.st_size = strlen(lp->l_path);
 
         ret = ELF_SUCCESS;
   end:
@@ -122,13 +126,13 @@ libfs_readlink(void *obj_hdl,
 
         lp = list_get(obj->ctx->libpath, obj->name);
         if (lp) {
-                iret = access(lp->libpath, R_OK);
+                iret = access(lp->l_path, R_OK);
                 if (-1 == iret) {
                         if (ENOENT != errno)
                                 ERR("access: %s", strerror(errno));
 
                 } else {
-                        buf = strdup(lp->libpath);
+                        buf = strdup(lp->l_path);
                         if (! buf) {
                                 ERR("malloc: %s", strerror(errno));
                                 ret = ELF_ENOMEM;
