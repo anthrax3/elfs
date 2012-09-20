@@ -192,7 +192,7 @@ programfs_build(telf_ctx *ctx)
         telf_obj *obj_sections = NULL;
         telf_obj *section = NULL;
         telf_status ret;
-        int rc;
+        telf_status rc;
         int i;
 
         rc = elf_namei(ctx, "/sections", &obj_sections);
