@@ -9,8 +9,6 @@
 #include "defaultfs.h"
 #include "misc.h"
 
-extern telf_ctx *ctx;
-
 
 static void
 rootfs_freecontent(void *data)
