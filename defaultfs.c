@@ -293,7 +293,7 @@ defaultfs_readdir(void *obj_hdl,
         elf_obj_lock(obj);
         locked = 1;
 
-        dir_ctor(ctx, obj, dir_hdl);
+        dir_ctor(obj->ctx, obj, dir_hdl);
 
         while (0 == readdir_getdirent(dir_hdl, &dirent)) {
                 if (fill(data, dirent.name, NULL, 0))

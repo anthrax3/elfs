@@ -10,8 +10,6 @@
 #include "defaultfs.h"
 #include "symbolfs.h"
 
-extern telf_ctx *ctx;
-
 
 /* section directory object creation */
 

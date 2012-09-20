@@ -10,8 +10,6 @@
 #include "programfs.h"
 
 
-telf_ctx *ctx;
-
 static void
 programfs_freecontent(void *data)
 {
@@ -37,7 +35,7 @@ programfs_code_getsize(void *obj_hdl,
         size_t size;
 
         sprintf(realname, ".%s", obj->parent->name);
-        shdr = elf_getsectionbyname(ctx, realname);
+        shdr = elf_getsectionbyname(obj->ctx, realname);
 
         size = shdr->sh_size;
 
@@ -62,7 +60,7 @@ programfs_code_setcontent(void *obj_hdl,
         size_t buf_len = 0;
 
         sprintf(realname, ".%s", obj->parent->name);
-        shdr = elf_getsectionbyname(ctx, realname);
+        shdr = elf_getsectionbyname(obj->ctx, realname);
 
         buf_len = shdr->sh_size;
 

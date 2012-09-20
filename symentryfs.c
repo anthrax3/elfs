@@ -11,8 +11,6 @@
 #include "elfs.h"
 #include "defaultfs.h"
 
-extern telf_ctx *ctx;
-
 static void
 symentryfs_freecontent(void *data)
 {

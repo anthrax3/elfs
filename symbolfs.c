@@ -9,8 +9,6 @@
 #include "log.h"
 #include "defaultfs.h"
 
-telf_ctx *ctx;
-
 
 static telf_status
 symbolfs_symtab_build(telf_ctx *ctx)
