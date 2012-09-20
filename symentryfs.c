@@ -171,8 +171,8 @@ symentryfs_gen_info(telf_obj *obj,
         char *symname = NULL;
         char *buf = NULL;
         size_t buf_len = 0;
-        char tmpbuf[1024] = "";
         telf_status ret;
+        FILE *out = NULL;
 
         /* default value */
         symname = "NONAME";
@@ -186,32 +186,30 @@ symentryfs_gen_info(telf_obj *obj,
                         symname = "UNRESOLVED";
         }
 
-        buf_len = sprintf(tmpbuf,
-                          "value: %p\n"
-                          "size: %zu\n"
-                          "type: %s\n"
-                          "bind: %s\n"
-                          "name: %s\n",
-                          (void *) sym->st_value,
-                          sym->st_size,
-                          sym_type_to_str(sym),
-                          sym_bind_to_str(sym),
-                          symname);
-
-        if (bufp) {
-                buf = malloc(buf_len + 1);
-                if (! buf) {
-                        ERR("malloc: %s", strerror(errno));
-                        ret = ELF_ENOMEM;
-                        goto end;
-                }
-
-                strncpy(buf, tmpbuf, buf_len);
-                buf[buf_len] = 0;
+        out = open_memstream(&buf, &buf_len);
+        if (! out) {
+                ERR("open_memstream: %s", strerror(errno));
+                ret = ELF_ENOMEM;
+                goto end;
         }
+
+        fprintf(out,
+                "value: %p\n"
+                "size: %zu\n"
+                "type: %s\n"
+                "bind: %s\n"
+                "name: %s\n",
+                (void *) sym->st_value,
+                sym->st_size,
+                sym_type_to_str(sym),
+                sym_bind_to_str(sym),
+                symname);
 
         ret = ELF_SUCCESS;
   end:
+        if (out)
+                fclose(out);
+
         if (bufp)
                 *bufp = buf;
         else

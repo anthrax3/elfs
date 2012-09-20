@@ -52,54 +52,51 @@ rootfs_gen_info(Elf64_Ehdr *ehdr,
         telf_status ret;
         char *buf = NULL;
         size_t buf_len = 0;
+        FILE *out = NULL;
 
         for (i = 0; i < EI_NIDENT; i++)
                 off += sprintf(ident_str + off, "%.2x ", ehdr->e_ident[i]);
 
-        buf_len = sprintf(tmpbuf,
-                          "Ident:                             %s\n"
-                          "Version:                           %d\n"
-                          "Class:                             %d\n"
-                          "Type:                              %s\n"
-                          "Version:                           %d\n"
-                          "ELF Header size:                   %d bytes\n"
-                          "Entry point:                       %p\n"
-                          "Program Header offset:             %lu bytes\n"
-                          "Program Header entry size:         %d bytes\n"
-                          "Number of Program Header entries:  %d\n"
-                          "Section Header offset:             %lu bytes\n"
-                          "Section Header entry size:         %d bytes\n"
-                          "Number of Section Header entries:  %d\n"
-                          "SH string table index:             %d\n",
-                          ident_str,
-                          ehdr->e_ident[EI_VERSION],
-                          ehdr->e_ident[EI_CLASS] == ELFCLASS64 ? 64 : 32,
-                          rootfs_type_to_str(ehdr->e_type),
-                          ehdr->e_version,
-                          ehdr->e_ehsize,
-                          (void *) ehdr->e_entry,
-                          ehdr->e_phoff,
-                          ehdr->e_phentsize,
-                          ehdr->e_phnum,
-                          ehdr->e_shoff,
-                          ehdr->e_shentsize,
-                          ehdr->e_shnum,
-                          ehdr->e_shstrndx);
-
-        if (bufp) {
-                buf = malloc(buf_len + 1);
-                if (! buf) {
-                        ERR("malloc: %s", strerror(errno));
-                        ret = ELF_ENOMEM;
-                        goto end;
-                }
-
-                strncpy(buf, tmpbuf, buf_len);
-                buf[buf_len] = 0;
+        out = open_memstream(&buf, &buf_len);
+        if (! out) {
+                ERR("open_memstream: %s", strerror(errno));
+                ret = ELF_ENOMEM;
+                goto end;
         }
+
+        fprintf(out,
+                "Ident:                             %s\n"
+                "Version:                           %d\n"
+                "Class:                             %d\n"
+                "Type:                              %s\n"
+                "ELF Header size:                   %d bytes\n"
+                "Entry point:                       %p\n"
+                "Program Header offset:             %lu bytes\n"
+                "Program Header entry size:         %d bytes\n"
+                "Number of Program Header entries:  %d\n"
+                "Section Header offset:             %lu bytes\n"
+                "Section Header entry size:         %d bytes\n"
+                "Number of Section Header entries:  %d\n"
+                "SH string table index:             %d\n",
+                ident_str,
+                ehdr->e_ident[EI_VERSION],
+                ehdr->e_ident[EI_CLASS] == ELFCLASS64 ? 64 : 32,
+                rootfs_type_to_str(ehdr->e_type),
+                ehdr->e_ehsize,
+                (void *) ehdr->e_entry,
+                ehdr->e_phoff,
+                ehdr->e_phentsize,
+                ehdr->e_phnum,
+                ehdr->e_shoff,
+                ehdr->e_shentsize,
+                ehdr->e_shnum,
+                ehdr->e_shstrndx);
 
         ret = ELF_SUCCESS;
   end:
+        if (out)
+                fclose(out);
+
         if (bufp)
                 *bufp = buf;
         else
