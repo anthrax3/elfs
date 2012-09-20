@@ -97,7 +97,9 @@ libfs_getattr(void *obj_hdl,
         st.st_mode |= ELF_S_IRWXU|ELF_S_IRWXG|ELF_S_IRWXO;
 
         lp = list_get(obj->ctx->libpath, obj->name);
-        if (lp)
+        if (lp && lp->l_path[0] == '/')
+                /* we don't the length of "foo => (0x424242)" to be 0
+                 * since the destination doesn't exist on disk */
                 st.st_size = strlen(lp->l_path);
 
         ret = ELF_SUCCESS;
@@ -219,7 +221,7 @@ elf_libpath_ctor(telf_ctx *ctx)
 
 			sscanf(cmd, "%1023s => %1023s (%x)", name, path, &x);
 
-                        if (0 == path[0] || '/' == name[0])
+                        if (0 == path[0])
                                 continue;
 
                         lp = elf_libpath_new(name, path);
