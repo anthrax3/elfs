@@ -87,6 +87,8 @@ typedef enum {
         MAP(ELF_SYMBOL_ENTRY)                           \
         MAP(ELF_LIBS)                                   \
         MAP(ELF_LIBS_ENTRY)                             \
+        MAP(ELF_HEADER)                                 \
+        MAP(ELF_HEADER_ENTRY)                           \
         MAP(ELF_ROOTDIR)                                \
         MAP(ELF_ROOTDIR_ENTRY)
 

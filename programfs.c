@@ -165,8 +165,8 @@ section_ctor_cb(void *obj_hdl,
                 return;
 
         for (i = 0; i < N_ELEMS(programfs_fcb); i++) {
-
                 telf_fcb *fcb = programfs_fcb + i;
+
                 entry = elf_obj_new(obj->ctx, fcb->str, obj,
                                     ELF_SECTION_PROGBITS_CODE,
                                     ELF_S_IFREG);

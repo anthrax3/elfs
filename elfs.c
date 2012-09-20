@@ -23,6 +23,7 @@
 #include "sectionfs.h"
 #include "fsapi.h"
 #include "libfs.h"
+#include "headerfs.h"
 
 #ifdef __FreeBSD__
 #define PTRACE_DETACH PT_DETACH
@@ -455,6 +456,12 @@ elf_ctx_new(telf_options *opt)
         rc = libfs_build(ctx);
         if (ELF_SUCCESS != rc && ELF_ENOENT != rc) {
                 ERR("libfs build failed");
+                goto err;
+        }
+
+        rc = headerfs_build(ctx);
+        if (ELF_SUCCESS != rc) {
+                ERR("headerfs build failed");
                 goto err;
         }
 
