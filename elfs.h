@@ -26,9 +26,14 @@ typedef struct {
 } telf_default_content;
 
 
-typedef telf_status (* tobj_getsize_func)(void *, size_t *);
-typedef telf_status (* tobj_setcontent_func)(void *, char **, size_t *);
+typedef telf_status (* tobj_fillcontent_func)(void *, char **, size_t *);
 typedef void (* tobj_freecontent_func)(void *);
+
+typedef struct {
+        char *str;
+        tobj_fillcontent_func fillcontent_func;
+        tobj_freecontent_func freecontent_func;
+} telf_fcb;
 
 typedef struct {
         pid_t pid;
@@ -39,7 +44,7 @@ typedef struct {
 typedef struct self_obj {
         telf_fs_driver *driver;  /* set of fs callbacks */
 
-        tobj_setcontent_func fill_func;
+        tobj_fillcontent_func fill_func;
         tobj_freecontent_func free_func;
 
         struct self_ctx *ctx;    /* global context */
@@ -82,6 +87,7 @@ typedef struct self_ctx {
 } telf_ctx;
 
 
+telf_fcb *elf_get_fcb(telf_fcb *fcb, int n_fcb, char *ident);
 telf_obj *elf_obj_new(telf_ctx *, char *, telf_obj *, telf_type, telf_ftype);
 void elf_obj_free(telf_obj *obj);
 void elf_obj_lock(telf_obj *obj);

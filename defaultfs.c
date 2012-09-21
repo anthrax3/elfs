@@ -26,6 +26,14 @@ defaultfs_getattr(void *obj_hdl,
         memcpy(st, &obj->st, sizeof *st);
         st->st_nlink = 1;
 
+        if (ELF_S_ISREG(obj->st.st_mode)) {
+                rc = obj->fill_func(obj, NULL, &st->st_size);
+                if (ELF_SUCCESS != rc) {
+                        ret = rc;
+                        goto end;
+                }
+        }
+
         ret = ELF_SUCCESS;
   end:
 

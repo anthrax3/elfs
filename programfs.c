@@ -25,32 +25,9 @@ programfs_freecontent(void *data)
 }
 
 static telf_status
-programfs_code_getsize(void *obj_hdl,
-                       size_t *sizep)
-{
-        telf_obj *obj = obj_hdl;
-        telf_status ret;
-        char realname[128];
-        Elf64_Shdr *shdr = NULL;
-        size_t size;
-
-        sprintf(realname, ".%s", obj->parent->name);
-        shdr = elf_getsectionbyname(obj->ctx, realname);
-
-        size = shdr->sh_size;
-
-        ret = ELF_SUCCESS;
-  end:
-        if (sizep)
-                *sizep = size;
-
-        return ret;
-}
-
-static telf_status
-programfs_code_setcontent(void *obj_hdl,
-                          char **bufp,
-                          size_t *buf_lenp)
+programfs_fillcontent_code(void *obj_hdl,
+                           char **bufp,
+                           size_t *buf_lenp)
 {
         telf_obj *obj = obj_hdl;
         telf_status ret;
@@ -88,68 +65,9 @@ programfs_code_setcontent(void *obj_hdl,
         return ret;
 }
 
-typedef struct {
-        char *str;
-        tobj_getsize_func getsize_func;
-        tobj_setcontent_func setcontent_func;
-        tobj_freecontent_func freecontent_func;
-} telf_fcb;
-
 static telf_fcb programfs_fcb[] = {
-        {
-                "code",
-                programfs_code_getsize,
-                programfs_code_setcontent,
-                programfs_freecontent
-        },
+        { "code", programfs_fillcontent_code, programfs_freecontent },
 };
-
-
-
-static telf_status
-programfs_getattr(void *obj_hdl,
-                  telf_stat *stp)
-{
-        telf_obj *obj = obj_hdl;
-        telf_status ret;
-        telf_status rc;
-        telf_stat st;
-        int i;
-
-        elf_obj_lock(obj);
-
-        memset(&st, 0, sizeof st);
-        st.st_mode |= ELF_S_IFREG;
-
-        for (i = 0; i < N_ELEMS(programfs_fcb); i++) {
-                telf_fcb *fcb = programfs_fcb + i;
-
-                if (0 == strcmp(obj->name, fcb->str)) {
-                        rc = fcb->getsize_func(obj, &st.st_size);
-                        if (ELF_SUCCESS != rc) {
-                                ERR("can't get size of '%s'", obj->name);
-                                ret = rc;
-                                goto end;
-                        }
-                        break;
-                }
-        }
-
-        ret = ELF_SUCCESS;
-  end:
-        elf_obj_unlock(obj);
-
-        if (stp)
-                *stp = st;
-
-        return ret;
-}
-
-static void
-programfs_override_driver(telf_fs_driver *driver)
-{
-        driver->getattr = programfs_getattr;
-}
 
 
 static void
@@ -176,9 +94,8 @@ section_ctor_cb(void *obj_hdl,
                 }
 
                 entry->free_func = fcb->freecontent_func;
-                entry->fill_func = fcb->setcontent_func;
+                entry->fill_func = fcb->fillcontent_func;
 
-                programfs_override_driver(entry->driver);
                 list_add(obj->entries, entry);
         }
 

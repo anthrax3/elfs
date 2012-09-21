@@ -40,19 +40,20 @@ headerfs_type_to_str(unsigned type)
 }
 
 static telf_status
-headerfs_gen_info(Elf64_Ehdr *ehdr,
-                  char **bufp,
-                  size_t *buf_lenp)
+headerfs_fillcontent_info(void *obj_hdl,
+                          char **bufp,
+                          size_t *buf_lenp)
 {
+        telf_obj *obj = obj_hdl;
         size_t size;
         size_t off = 0;
         int i;
         char ident_str[128] = "";
-        char tmpbuf[1024];
         telf_status ret;
         char *buf = NULL;
         size_t buf_len = 0;
         FILE *out = NULL;
+        Elf64_Ehdr *ehdr = obj->ctx->ehdr;
 
         for (i = 0; i < EI_NIDENT; i++)
                 off += sprintf(ident_str + off, "%.2x ", ehdr->e_ident[i]);
@@ -108,113 +109,87 @@ headerfs_gen_info(Elf64_Ehdr *ehdr,
         return ret;
 }
 
+
 static telf_status
-headerfs_info_getsize(void *obj_hdl,
-                      size_t *sizep)
+headerfs_fillcontent_version(void *obj_hdl,
+                             char **bufp,
+                             size_t *buf_lenp)
 {
         telf_obj *obj = obj_hdl;
+        size_t size;
         telf_status ret;
-        telf_status rc;
+        char *buf = NULL;
+        size_t buf_len = 0;
+        FILE *out = NULL;
 
-        rc = headerfs_gen_info(obj->ctx->ehdr, NULL, sizep);
-        if (ELF_SUCCESS != rc) {
-                ERR("Can't generate header info");
-                ret = rc;
+        out = open_memstream(&buf, &buf_len);
+        if (! out) {
+                ERR("open_memstream: %s", strerror(errno));
+                ret = ELF_ENOMEM;
                 goto end;
         }
 
-        ret = ELF_SUCCESS;
-  end:
-        return ret;
-}
-
-static telf_status
-headerfs_info_setcontent(void *obj_hdl,
-                         char **bufp,
-                         size_t *buf_lenp)
-{
-        telf_obj *obj = obj_hdl;
-        telf_status ret;
-        telf_status rc;
-
-        rc = headerfs_gen_info(obj->ctx->ehdr, bufp, buf_lenp);
-        if (ELF_SUCCESS != rc) {
-                ERR("Can't generate header info");
-                ret = rc;
-                goto end;
-        }
+        fprintf(out, "%d\n", obj->ctx->ehdr->e_version);
 
         ret = ELF_SUCCESS;
   end:
-        DEBUG("ret=%s (%d)", elf_status_to_str(ret), ret);
+        if (out)
+                fclose(out);
+
+        if (bufp)
+                *bufp = buf;
+        else
+                free(buf);
+
+        if (buf_lenp)
+                *buf_lenp = buf_len;
+
         return ret;
 }
 
 
-typedef struct {
-        char *str;
-        tobj_getsize_func getsize_func;
-        tobj_setcontent_func setcontent_func;
-        tobj_freecontent_func freecontent_func;
-} telf_fcb;
+static telf_status
+headerfs_fillcontent_entrypoint(void *obj_hdl,
+                                char **bufp,
+                                size_t *buf_lenp)
+{
+        telf_obj *obj = obj_hdl;
+        size_t size;
+        telf_status ret;
+        char *buf = NULL;
+        size_t buf_len = 0;
+        FILE *out = NULL;
+
+        out = open_memstream(&buf, &buf_len);
+        if (! out) {
+                ERR("open_memstream: %s", strerror(errno));
+                ret = ELF_ENOMEM;
+                goto end;
+        }
+
+        fprintf(out, "%p\n", (void *) obj->ctx->ehdr->e_entry);
+
+        ret = ELF_SUCCESS;
+  end:
+        if (out)
+                fclose(out);
+
+        if (bufp)
+                *bufp = buf;
+        else
+                free(buf);
+
+        if (buf_lenp)
+                *buf_lenp = buf_len;
+
+        return ret;
+}
 
 static telf_fcb headerfs_fcb[] = {
-        {
-                "info",
-                headerfs_info_getsize,
-                headerfs_info_setcontent,
-                headerfs_freecontent
-        },
+        { "info",       headerfs_fillcontent_info,       headerfs_freecontent },
+        { "version",    headerfs_fillcontent_version,    headerfs_freecontent },
+        { "entrypoint", headerfs_fillcontent_entrypoint, headerfs_freecontent },
 };
-
-static telf_status
-headerfs_getattr(void *obj_hdl,
-                 telf_stat *stp)
-{
-        telf_obj *obj = obj_hdl;
-        telf_status ret;
-        telf_status rc;
-        telf_stat st;
-        int i;
-
-        elf_obj_lock(obj);
-
-        DEBUG("name:%s data=%p", obj->name, obj->data);
-
-        memset(&st, 0, sizeof st);
-        st.st_mode |= ELF_S_IFREG;
-
-        for (i = 0; i < N_ELEMS(headerfs_fcb); i++) {
-                telf_fcb *fcb = headerfs_fcb + i;
-
-                if (0 == strcmp(obj->name, fcb->str)) {
-                        rc = fcb->getsize_func(obj, &st.st_size);
-                        if (ELF_SUCCESS != rc) {
-                                ERR("can't get size of '%s'", obj->name);
-                                ret = rc;
-                                goto end;
-                        }
-                        break;
-                }
-        }
-
-        ret = ELF_SUCCESS;
-  end:
-
-        elf_obj_unlock(obj);
-
-        if (stp)
-                *stp = st;
-
-        DEBUG("ret=%s (%d)", elf_status_to_str(ret), ret);
-        return ret;
-}
-
-static void
-headerfs_override_driver(telf_fs_driver *driver)
-{
-        driver->getattr = headerfs_getattr;
-}
 
 
 telf_status
@@ -248,9 +223,8 @@ headerfs_build(telf_ctx *ctx)
                         continue;
                 }
 
-                headerfs_override_driver(entry->driver);
                 entry->free_func = fcb->freecontent_func;
-                entry->fill_func = fcb->setcontent_func;
+                entry->fill_func = fcb->fillcontent_func;
 
                 list_add(header_obj->entries, entry);
         }

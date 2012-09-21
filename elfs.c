@@ -42,6 +42,25 @@ char *elf_type_names[] = {
 #undef MAP
 
 
+telf_fcb *
+elf_get_fcb(telf_fcb *fcb,
+            int n_fcb,
+            char *ident)
+{
+        telf_fcb *current = NULL;
+        int i;
+
+        for (i = 0; i < n_fcb; i++) {
+                current = fcb + i;
+
+                if (0 == strcmp(ident, current->str))
+                        return current;
+        }
+
+        return NULL;
+}
+
+
 struct fuse_operations elf_fs_ops = {
         .getattr     = elf_fs_getattr,
         .mkdir       = elf_fs_mkdir,
