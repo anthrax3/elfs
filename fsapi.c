@@ -436,7 +436,7 @@ elf_fs_open(const char *path,
          * rework the whole API and use a per-obj file handler, with
          * global contextes, each one embedding its fs driver
          */
-        rc = obj->driver->open((char *) path, 0u /* XXX */, (void **) &obj);
+        rc = obj->driver->open(obj, 0u /* XXX flags */);
         if (ELF_SUCCESS != rc) {
                 ERR("open failed: %s", elf_status_to_str(rc));
                 ret = -EIO;

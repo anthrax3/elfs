@@ -36,23 +36,16 @@ defaultfs_getattr(void *obj_hdl,
 }
 
 static telf_status
-defaultfs_open(char *path,
-               telf_open_flags flags,
-               void **objp)
+defaultfs_open(void *obj_hdl,
+               telf_open_flags flags)
 {
+        telf_obj *obj = obj_hdl;
         telf_status ret;
         telf_status rc;
-        telf_obj *obj;
         char *buf;
         size_t buf_len;
         telf_default_content *content;
         int locked = 0;
-
-        rc = elf_namei(ctx, path, &obj);
-        if (ELF_SUCCESS != rc) {
-                ret = rc;
-                goto end;
-        }
 
         elf_obj_lock(obj);
         locked = 1;
@@ -81,9 +74,6 @@ defaultfs_open(char *path,
   end:
         if (locked)
                 elf_obj_unlock(obj);
-
-        if (objp)
-                *objp = obj;
 
         DEBUG("obj->data=%p, ret=%s (%d)",
             obj->data, elf_status_to_str(ret), ret);
