@@ -232,7 +232,7 @@ headerfs_release_version(void *obj_hdl)
         cont = obj->data;
         if (cont) {
                 unsigned char v = atoi(cont->buf);
-                ERR("new version: %d", v);
+                DEBUG("new version: %d", v);
                 obj->ctx->ehdr->e_version = v;
         }
 
@@ -254,7 +254,7 @@ headerfs_release_entrypoint(void *obj_hdl)
         cont = obj->data;
         if (cont) {
                 Elf64_Addr addr = (Elf64_Addr) strtoull(cont->buf, NULL, 0);
-                ERR("new version: %llx", (unsigned long long) addr);
+                DEBUG("new entry point: %p", (void *) addr);
                 obj->ctx->ehdr->e_entry = addr;
         }
 
