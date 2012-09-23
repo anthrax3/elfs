@@ -24,6 +24,7 @@ defaultfs_getattr(void *obj_hdl,
         DEBUG("name:%s data=%p", obj->name, obj->data);
 
         memcpy(st, &obj->st, sizeof *st);
+        st->st_mode |= ELF_S_IRUSR|ELF_S_IWUSR | ELF_S_IRGRP | ELF_S_IROTH;
         st->st_nlink = 1;
 
         if (ELF_S_ISREG(obj->st.st_mode)) {
@@ -115,7 +116,7 @@ defaultfs_read(void *obj_hdl,
                ssize_t *sizep)
 {
         telf_obj *obj = obj_hdl;
-        telf_default_content *content = NULL;
+        telf_default_content *cont = NULL;
         telf_status ret;
         telf_status rc;
 
@@ -123,33 +124,33 @@ defaultfs_read(void *obj_hdl,
 
         DEBUG("name:%s data=%p", obj->name, obj->data);
 
-        content = obj->data;
+        cont = obj->data;
 
         /* FUSE might release() the object before read(), true story bro' */
-        if (! content) {
-                content = malloc(sizeof *content);
-                if (! content) {
+        if (! cont) {
+                cont = malloc(sizeof *cont);
+                if (! cont) {
                         ERR("malloc: %s", strerror(errno));
                         ret = ELF_ENOMEM;
                         goto end;
                 }
 
-                memset(content, 0, sizeof *content);
+                memset(cont, 0, sizeof *cont);
 
-                rc = obj->fill_func(obj, &content->buf, &content->buf_len);
+                rc = obj->fill_func(obj, &cont->buf, &cont->buf_len);
                 if (ELF_SUCCESS != rc) {
                         ret = rc;
                         goto end;
                 }
 
-                obj->data = content;
+                obj->data = cont;
         }
 
 
-        if (size > content->buf_len)
-                size = content->buf_len;
+        if (size > cont->buf_len)
+                size = cont->buf_len;
 
-        memcpy(buf, content->buf + offset, size);
+        memcpy(buf, cont->buf + offset, size);
 
         ret = ELF_SUCCESS;
   end:
@@ -163,13 +164,58 @@ defaultfs_read(void *obj_hdl,
 }
 
 static telf_status
-defaultfs_write(void *obj,
+defaultfs_write(void *obj_hdl,
                 const char *buf,
                 size_t size,
                 off_t offset,
                 ssize_t *sizep)
 {
-        return ELF_SUCCESS;
+        telf_obj *obj = obj_hdl;
+        telf_default_content *cont = NULL;
+        telf_status ret;
+        telf_status rc;
+
+        elf_obj_lock(obj);
+
+        DEBUG("name:%s data=%p", obj->name, obj->data);
+
+        cont = obj->data;
+
+        /* FUSE might release() the object before read(), true story bro' */
+        if (! cont) {
+                cont = malloc(sizeof *cont);
+                if (! cont) {
+                        ERR("malloc: %s", strerror(errno));
+                        ret = ELF_ENOMEM;
+                        goto end;
+                }
+
+                memset(cont, 0, sizeof *cont);
+
+                rc = obj->fill_func(obj, &cont->buf, &cont->buf_len);
+                if (ELF_SUCCESS != rc) {
+                        ret = rc;
+                        goto end;
+                }
+
+                obj->data = cont;
+        }
+
+
+        if (size > cont->buf_len)
+                size = cont->buf_len;
+
+        memcpy(cont->buf + offset, buf, size);
+
+        ret = ELF_SUCCESS;
+  end:
+        if (sizep)
+                *sizep = size;
+
+        elf_obj_unlock(obj);
+
+        DEBUG("ret=%s (%d)", elf_status_to_str(ret), ret);
+        return ret;
 }
 
 

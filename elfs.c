@@ -265,11 +265,8 @@ elf_sanity_check(unsigned char *addr)
 {
         telf_status ret;
 
-        if (strncmp(addr, ELFMAG, SELFMAG)) {
+        if (strncmp(addr, ELFMAG, SELFMAG))
                 ERR("bad magic: %*s", SELFMAG, addr);
-                ret = ELF_FAILURE;
-                goto end;
-        }
 
         if (ELFCLASSNONE == addr + EI_CLASS) {
                 ERR("bad elf class %c", addr[EI_CLASS]);
@@ -336,14 +333,14 @@ elf_mmap_internal(telf_ctx *ctx)
         telf_status rc;
         void *addr = NULL;
 
-        fd = open(ctx->binpath, 0600, O_RDONLY);
+        fd = open(ctx->binpath, 0666, O_RDWR);
         if (-1 == fd) {
                 ERR("open '%s': %s", ctx->binpath, strerror(errno));
                 ret = ELF_FAILURE;
                 goto err;
         }
 
-        addr = mmap(NULL, ctx->st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+        addr = mmap(NULL, ctx->st.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
         if (MAP_FAILED == addr) {
                 ERR("mmap: %s", strerror(errno));
                 ret = ELF_FAILURE;

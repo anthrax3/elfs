@@ -25,9 +25,9 @@ programfs_freecontent(void *data)
 }
 
 static telf_status
-programfs_fillcontent_code(void *obj_hdl,
-                           char **bufp,
-                           size_t *buf_lenp)
+programfs_read_code(void *obj_hdl,
+                    char **bufp,
+                    size_t *buf_lenp)
 {
         telf_obj *obj = obj_hdl;
         telf_status ret;
@@ -66,7 +66,7 @@ programfs_fillcontent_code(void *obj_hdl,
 }
 
 static telf_fcb programfs_fcb[] = {
-        { "code", programfs_fillcontent_code, programfs_freecontent },
+        { "code", programfs_read_code, programfs_freecontent },
 };
 
 

@@ -28,11 +28,13 @@ typedef struct {
 
 typedef telf_status (* tobj_fillcontent_func)(void *, char **, size_t *);
 typedef void (* tobj_freecontent_func)(void *);
+typedef telf_status (* tobj_release_func)(void *);
 
 typedef struct {
         char *str;
         tobj_fillcontent_func fillcontent_func;
         tobj_freecontent_func freecontent_func;
+        tobj_release_func     release_func;
 } telf_fcb;
 
 typedef struct {

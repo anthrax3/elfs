@@ -40,12 +40,11 @@ headerfs_type_to_str(unsigned type)
 }
 
 static telf_status
-headerfs_fillcontent_info(void *obj_hdl,
-                          char **bufp,
-                          size_t *buf_lenp)
+headerfs_read_info(void *obj_hdl,
+                   char **bufp,
+                   size_t *buf_lenp)
 {
         telf_obj *obj = obj_hdl;
-        size_t size;
         size_t off = 0;
         int i;
         char ident_str[128] = "";
@@ -109,14 +108,12 @@ headerfs_fillcontent_info(void *obj_hdl,
         return ret;
 }
 
-
 static telf_status
-headerfs_fillcontent_version(void *obj_hdl,
-                             char **bufp,
-                             size_t *buf_lenp)
+headerfs_read_version(void *obj_hdl,
+                      char **bufp,
+                      size_t *buf_lenp)
 {
         telf_obj *obj = obj_hdl;
-        size_t size;
         telf_status ret;
         char *buf = NULL;
         size_t buf_len = 0;
@@ -147,14 +144,12 @@ headerfs_fillcontent_version(void *obj_hdl,
         return ret;
 }
 
-
 static telf_status
-headerfs_fillcontent_entrypoint(void *obj_hdl,
-                                char **bufp,
-                                size_t *buf_lenp)
+headerfs_read_entrypoint(void *obj_hdl,
+                         char **bufp,
+                         size_t *buf_lenp)
 {
         telf_obj *obj = obj_hdl;
-        size_t size;
         telf_status ret;
         char *buf = NULL;
         size_t buf_len = 0;
@@ -185,12 +180,190 @@ headerfs_fillcontent_entrypoint(void *obj_hdl,
         return ret;
 }
 
+static telf_status
+headerfs_read_ident(void *obj_hdl,
+                    char **bufp,
+                    size_t *buf_lenp)
+{
+        telf_obj *obj = obj_hdl;
+        telf_status ret;
+        char *buf = NULL;
+        size_t buf_len = 0;
+        FILE *out = NULL;
+        int i;
+
+        out = open_memstream(&buf, &buf_len);
+        if (! out) {
+                ERR("open_memstream: %s", strerror(errno));
+                ret = ELF_ENOMEM;
+                goto end;
+        }
+
+        for (i = 0; i < EI_NIDENT; i++)
+                fprintf(out, "%.2x", obj->ctx->ehdr->e_ident[i]);
+
+        fprintf(out, "\n");
+
+        ret = ELF_SUCCESS;
+  end:
+        if (out)
+                fclose(out);
+
+        if (bufp)
+                *bufp = buf;
+        else
+                free(buf);
+
+        if (buf_lenp)
+                *buf_lenp = buf_len;
+
+        return ret;
+}
+
+static telf_status
+headerfs_release_version(void *obj_hdl)
+{
+        telf_obj *obj = obj_hdl;
+        telf_status ret;
+        telf_default_content *cont = NULL;
+
+        DEBUG("name:%s data=%p", obj->name, obj->data);
+
+        cont = obj->data;
+        if (cont) {
+                unsigned char v = atoi(cont->buf);
+                ERR("new version: %d", v);
+                obj->ctx->ehdr->e_version = v;
+        }
+
+        ret = ELF_SUCCESS;
+  end:
+
+        return ret;
+}
+
+static telf_status
+headerfs_release_entrypoint(void *obj_hdl)
+{
+        telf_obj *obj = obj_hdl;
+        telf_status ret;
+        telf_default_content *cont = NULL;
+
+        DEBUG("name:%s data=%p", obj->name, obj->data);
+
+        cont = obj->data;
+        if (cont) {
+                Elf64_Addr addr = (Elf64_Addr) strtoull(cont->buf, NULL, 0);
+                ERR("new version: %llx", (unsigned long long) addr);
+                obj->ctx->ehdr->e_entry = addr;
+        }
+
+        ret = ELF_SUCCESS;
+  end:
+
+        return ret;
+}
+
+static telf_status
+headerfs_release_ident(void *obj_hdl)
+{
+        telf_obj *obj = obj_hdl;
+        telf_status ret;
+        telf_default_content *cont = NULL;
+        Elf64_Ehdr *ehdr = obj->ctx->ehdr;
+
+        DEBUG("name:%s data=%p", obj->name, obj->data);
+
+        cont = obj->data;
+        if (cont) {
+                int i;
+
+                for (i = 0; i < EI_NIDENT; i++) {
+                        char tmp[3] = { cont->buf[2*i], cont->buf[2*i+1], 0 };
+                        ehdr->e_ident[i] = (uint8_t) strtoul(tmp, NULL, 16);
+                }
+        }
+
+        ret = ELF_SUCCESS;
+  end:
+
+        return ret;
+}
+
 static telf_fcb headerfs_fcb[] = {
-        { "info",       headerfs_fillcontent_info,       headerfs_freecontent },
-        { "version",    headerfs_fillcontent_version,    headerfs_freecontent },
-        { "entrypoint", headerfs_fillcontent_entrypoint, headerfs_freecontent },
+        {
+                "info",
+                headerfs_read_info,
+                headerfs_freecontent,
+                NULL
+        },
+        {
+                "version",
+                headerfs_read_version,
+                headerfs_freecontent,
+                headerfs_release_version
+        },
+        {
+                "entrypoint",
+                headerfs_read_entrypoint,
+                headerfs_freecontent,
+                headerfs_release_entrypoint
+        },
+        {
+                "ident",
+                headerfs_read_ident,
+                headerfs_freecontent,
+                headerfs_release_ident
+        },
 };
 
+static telf_status
+headerfs_release(void *obj_hdl)
+{
+        telf_obj *obj = obj_hdl;
+        telf_fcb *fcb = NULL;
+        telf_status ret;
+        telf_status rc;
+
+        elf_obj_lock(obj);
+
+        DEBUG("name:%s data=%p", obj->name, obj->data);
+
+        fcb = elf_get_fcb(headerfs_fcb, N_ELEMS(headerfs_fcb), obj->name);
+        if (! fcb) {
+                ERR("no fcb matching obj '%s'", obj->name);
+                ret = ELF_ENOENT;
+                goto end;
+        }
+
+        if (fcb->release_func) {
+                rc = fcb->release_func(obj);
+                if (ELF_SUCCESS != rc) {
+                        ERR("release ('%s') failed: %s",
+                            obj->name, elf_status_to_str(rc));
+                        ret = rc;
+                        goto end;
+                }
+        }
+
+        ret = ELF_SUCCESS;
+  end:
+
+        if (obj->free_func) {
+                obj->free_func(obj->data);
+                obj->data = NULL;
+        }
+
+        elf_obj_unlock(obj);
+
+        return ret;
+}
+
+static void
+headerfs_override_driver(telf_fs_driver *driver)
+{
+        driver->release = headerfs_release;
+}
 
 telf_status
 headerfs_build(telf_ctx *ctx)
@@ -212,7 +385,6 @@ headerfs_build(telf_ctx *ctx)
         /* now add the pseudo files */
         for (i = 0; i < N_ELEMS(headerfs_fcb); i++) {
                 telf_obj *entry = NULL;
-
                 telf_fcb *fcb = headerfs_fcb + i;
 
                 entry = elf_obj_new(ctx, fcb->str, header_obj,
@@ -223,6 +395,7 @@ headerfs_build(telf_ctx *ctx)
                         continue;
                 }
 
+                headerfs_override_driver(entry->driver);
                 entry->free_func = fcb->freecontent_func;
                 entry->fill_func = fcb->fillcontent_func;
 

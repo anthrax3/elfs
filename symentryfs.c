@@ -26,9 +26,9 @@ symentryfs_freecontent(void *data)
 }
 
 static telf_status
-symentryfs_fillcontent_asmcode(void *obj_hdl,
-                               char **bufp,
-                               size_t *buf_lenp)
+symentryfs_read_asmcode(void *obj_hdl,
+                        char **bufp,
+                        size_t *buf_lenp)
 {
         telf_obj *obj = obj_hdl;
         telf_status ret;
@@ -66,9 +66,9 @@ symentryfs_fillcontent_asmcode(void *obj_hdl,
 }
 
 static telf_status
-symentryfs_fillcontent_bincode(void *obj_hdl,
-                               char **bufp,
-                               size_t *buf_lenp)
+symentryfs_read_bincode(void *obj_hdl,
+                        char **bufp,
+                        size_t *buf_lenp)
 {
         telf_obj *obj = obj_hdl;
         telf_status ret;
@@ -104,9 +104,9 @@ symentryfs_fillcontent_bincode(void *obj_hdl,
 }
 
 static telf_status
-symentryfs_fillcontent_info(void *obj_hdl,
-                            char **bufp,
-                            size_t *buf_lenp)
+symentryfs_read_info(void *obj_hdl,
+                     char **bufp,
+                     size_t *buf_lenp)
 {
         telf_obj *obj = obj_hdl;
         char *symname = NULL;
@@ -165,9 +165,9 @@ symentryfs_fillcontent_info(void *obj_hdl,
 
 
 static telf_fcb symentryfs_fcb[] = {
-        { "code.bin", symentryfs_fillcontent_bincode, symentryfs_freecontent },
-        { "code.asm", symentryfs_fillcontent_asmcode, symentryfs_freecontent },
-        { "info",     symentryfs_fillcontent_info,    symentryfs_freecontent },
+        { "code.bin", symentryfs_read_bincode, symentryfs_freecontent },
+        { "code.asm", symentryfs_read_asmcode, symentryfs_freecontent },
+        { "info",     symentryfs_read_info,    symentryfs_freecontent },
 };
 
 
