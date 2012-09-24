@@ -45,8 +45,7 @@ defaultfs_getattr(void *obj_hdl,
 }
 
 static telf_status
-defaultfs_open(void *obj_hdl,
-               telf_open_flags flags)
+defaultfs_open(void *obj_hdl)
 {
         telf_obj *obj = obj_hdl;
         telf_status ret;

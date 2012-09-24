@@ -71,8 +71,7 @@ elf_libpath_new(char *name,
 }
 
 static telf_status
-libfs_open(void *obj_hdl,
-           telf_open_flags flags)
+libfs_open(void *obj_hdl)
 {
         return ELF_FAILURE;
 }

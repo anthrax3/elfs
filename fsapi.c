@@ -9,6 +9,29 @@
 
 extern telf_ctx *ctx;
 
+static telf_open_flags
+elf_set_open_flags(int flags)
+{
+        telf_open_flags open_flags = 0u;
+
+#define SET_FLAG(mode) if (flags & O_##mode) open_flags |= ELF_O_##mode
+        SET_FLAG(RDONLY);
+        SET_FLAG(RDWR);
+        SET_FLAG(WRONLY);
+        SET_FLAG(TRUNC);
+        SET_FLAG(CREAT);
+#undef SET_FLAG
+
+        return open_flags;
+}
+
+static int
+elf_check_cred(telf_open_flags open_flags,
+               telf_ftype mode)
+{
+        return 0;
+}
+
 static void
 elf_est_to_st(telf_stat *est,
               struct stat *st)
@@ -417,6 +440,7 @@ elf_fs_open(const char *path,
         telf_obj *obj = NULL;
         telf_status rc;
         int ret;
+        telf_open_flags open_flags;
 
         DEBUG("path=%s", path);
 
@@ -424,6 +448,15 @@ elf_fs_open(const char *path,
         if (ELF_SUCCESS != rc) {
                 ERR("namei(%s) failed: %d", path, rc);
                 ret = -ENOENT;
+                goto end;
+        }
+
+        open_flags = elf_set_open_flags(info->flags);
+
+        /* check the credentials here */
+        if (0 != elf_check_cred(open_flags, obj->st.st_mode)) {
+                ERR("wrong credentials for '%s'", path);
+                ret = -EPERM;
                 goto end;
         }
 
@@ -436,7 +469,7 @@ elf_fs_open(const char *path,
          * rework the whole API and use a per-obj file handler, with
          * global contextes, each one embedding its fs driver
          */
-        rc = obj->driver->open(obj, 0u /* XXX flags */);
+        rc = obj->driver->open(obj);
         if (ELF_SUCCESS != rc) {
                 ERR("open failed: %s", elf_status_to_str(rc));
                 ret = -EIO;

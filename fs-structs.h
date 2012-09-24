@@ -126,7 +126,7 @@ typedef enum {
 
 /* file */
 typedef telf_status (* telf_fs_getattr)(void *obj, telf_stat *st);
-typedef telf_status (* telf_fs_open)(void *obj, telf_open_flags flags);
+typedef telf_status (* telf_fs_open)(void *obj);
 typedef telf_status (* telf_fs_release)(void *obj);
 typedef telf_status (* telf_fs_read)(void *obj, char *buf, size_t size, off_t offset, ssize_t *sizep);
 typedef telf_status (* telf_fs_write)(void *obj, const char *buf, size_t size, off_t offset, ssize_t *sizep);
