@@ -376,8 +376,6 @@ defaultfs_driver_new(void)
                 return NULL;
         }
 
-        driver->data = NULL;
-
         driver->getattr    = defaultfs_getattr;
         driver->open       = defaultfs_open;
         driver->release    = defaultfs_release;

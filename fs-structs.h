@@ -138,7 +138,6 @@ typedef telf_status (* telf_fs_releasedir)(void *obj);
 typedef telf_status (* telf_fs_readlink)(void *obj, char **bufp, size_t *buf_lenp);
 
 typedef struct {
-        void *data;
         telf_fs_getattr getattr;
         telf_fs_open open;
         telf_fs_release release;
