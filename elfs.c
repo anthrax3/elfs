@@ -385,7 +385,9 @@ elf_ctx_new(telf_options *opt)
 
         memset(ctx, 0, sizeof *ctx);
 
-        iret = mkdir(opt->mountpoint, 0755);
+        /* create the mountpoint if it doesn't exist with 0755 creds */
+        iret = mkdir(opt->mountpoint,
+                     S_IRWXU | S_IRGRP|S_IXGRP | S_IROTH|S_IXOTH);
         if (-1 == iret && EEXIST != errno) {
                 ERR("mkdir(%s): %s", opt->mountpoint, strerror(errno));
                 goto err;
