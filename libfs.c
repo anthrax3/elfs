@@ -229,15 +229,16 @@ elf_libpath_ctor(telf_ctx *ctx)
                                 goto end;
                         }
 
-                        list_add(ctx->libpath, lp);
-
                         entry = elf_obj_new(ctx, name, libfs_obj,
                                             ELF_LIBS_ENTRY,
                                             ELF_S_IFLNK);
                         if (! entry) {
                                 ERR("can't build entry '%s'", name);
+                                elf_libpath_free(lp);
                                 continue;
                         }
+
+                        list_add(ctx->libpath, lp);
 
                         libfs_override_driver(entry->driver);
                         list_add(libfs_obj->entries, entry);
