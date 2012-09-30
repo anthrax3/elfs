@@ -9,6 +9,7 @@
 #include "defaultfs.h"
 #include "misc.h"
 
+#include "compat.h"
 
 static void
 headerfs_freecontent(void *data)

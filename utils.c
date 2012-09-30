@@ -8,6 +8,7 @@
 #include "log.h"
 #include "utils.h"
 
+#include "compat.h"
 
 #define MAP(v) X(v, #v)
 #define X(a, b) b,

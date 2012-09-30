@@ -11,6 +11,8 @@
 #include "elfs.h"
 #include "defaultfs.h"
 
+#include "compat.h"
+
 static void
 symentryfs_freecontent(void *data)
 {
