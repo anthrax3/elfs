@@ -403,6 +403,7 @@ headerfs_build(telf_ctx *ctx)
                 list_add(header_obj->entries, entry);
         }
 
+        ret = ELF_SUCCESS;
   end:
         return ret;
 }
