@@ -20,7 +20,7 @@ symbolfs_symtab_build(telf_ctx *ctx)
         telf_obj *obj = NULL;
         char *name = NULL;
         char path[256];
-        Elf64_Shdr *shdr = NULL;
+        ElfW(Shdr) *shdr = NULL;
 
         rc = elf_namei(ctx, "/sections/symtab", &symtab_obj);
         if (ELF_SUCCESS != rc) {
@@ -31,8 +31,8 @@ symbolfs_symtab_build(telf_ctx *ctx)
 
         shdr = elf_getsectionbytype(ctx, SHT_SYMTAB);
         if (shdr) {
-                ctx->n_syms = shdr->sh_size / sizeof (Elf64_Sym);
-                ctx->symtab = (Elf64_Sym *) (ctx->addr + shdr->sh_offset);
+                ctx->n_syms = shdr->sh_size / sizeof (ElfW(Sym));
+                ctx->symtab = (ElfW(Sym) *) (ctx->addr + shdr->sh_offset);
                 ctx->strtab = ctx->addr + ctx->shdr[shdr->sh_link].sh_offset;
         }
 
@@ -41,7 +41,7 @@ symbolfs_symtab_build(telf_ctx *ctx)
                 goto end;
         }
 
-        Elf64_Sym *sym = NULL;
+        ElfW(Sym) *sym = NULL;
         for (i = 0; i < ctx->n_syms; i++) {
                 sym = elf_getnsym(ctx, i);
                 assert(NULL != sym);
@@ -93,7 +93,7 @@ symbolfs_dynsym_build(telf_ctx *ctx)
         telf_obj *dynsym_obj = NULL;
         char *name = NULL;
         char path[256];
-        Elf64_Shdr *shdr = NULL;
+        ElfW(Shdr) *shdr = NULL;
 
         rc = elf_namei(ctx, "/sections/dynsym", &dynsym_obj);
         if (ELF_SUCCESS != rc) {
@@ -105,8 +105,8 @@ symbolfs_dynsym_build(telf_ctx *ctx)
 
         shdr = elf_getsectionbytype(ctx, SHT_DYNSYM);
         if (shdr) {
-                ctx->n_dsyms = shdr->sh_size / sizeof (Elf64_Sym);
-                ctx->dsymtab = (Elf64_Sym *) (ctx->addr + shdr->sh_offset);
+                ctx->n_dsyms = shdr->sh_size / sizeof (ElfW(Sym));
+                ctx->dsymtab = (ElfW(Sym) *) (ctx->addr + shdr->sh_offset);
                 ctx->dstrtab = ctx->addr + ctx->shdr[shdr->sh_link].sh_offset;
         }
 
@@ -115,7 +115,7 @@ symbolfs_dynsym_build(telf_ctx *ctx)
                 goto end;
         }
 
-        Elf64_Sym *sym = NULL;
+        ElfW(Sym) *sym = NULL;
         for (i = 0; i < ctx->n_dsyms; i++) {
                 sym = elf_getndsym(ctx, i);
                 assert(NULL != sym);

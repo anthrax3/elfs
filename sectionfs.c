@@ -21,7 +21,7 @@ sectionfs_build(telf_ctx *ctx)
         int i;
         telf_obj *sections_obj = NULL;
 
-        Elf64_Shdr *sh_strtab = ctx->shdr + ctx->ehdr->e_shstrndx;
+        ElfW(Shdr) *sh_strtab = ctx->shdr + ctx->ehdr->e_shstrndx;
         char *sh_strtab_p = ctx->addr + sh_strtab->sh_offset;
 
         rc = elf_namei(ctx, "/sections", &sections_obj);
@@ -37,7 +37,7 @@ sectionfs_build(telf_ctx *ctx)
                 return ELF_SUCCESS;
 
         for (i = 0; i < ctx->n_sections; ++i) {
-                Elf64_Shdr *shdr = ctx->shdr + i;
+                ElfW(Shdr) *shdr = ctx->shdr + i;
                 telf_type type;
                 char name[128];
                 char *s_name = sh_strtab_p + shdr->sh_name;

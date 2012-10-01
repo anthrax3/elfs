@@ -35,8 +35,8 @@ symentryfs_read_asmcode(void *obj_hdl,
         telf_obj *obj = obj_hdl;
         telf_status ret;
         telf_status rc;
-        Elf64_Sym *sym = obj->parent->data;
-        Elf64_Shdr *shdr = obj->ctx->shdr + sym->st_shndx;
+        ElfW(Sym) *sym = obj->parent->data;
+        ElfW(Shdr) *shdr = obj->ctx->shdr + sym->st_shndx;
         char *buf = NULL;
         size_t buf_len = 0;
         size_t offset;
@@ -74,8 +74,8 @@ symentryfs_read_bincode(void *obj_hdl,
 {
         telf_obj *obj = obj_hdl;
         telf_status ret;
-        Elf64_Sym *sym = obj->parent->data;
-        Elf64_Shdr *shdr = obj->ctx->shdr + sym->st_shndx;
+        ElfW(Sym) *sym = obj->parent->data;
+        ElfW(Shdr) *shdr = obj->ctx->shdr + sym->st_shndx;
         char *buf = NULL;
         size_t buf_len = 0;
         size_t offset;
@@ -116,7 +116,7 @@ symentryfs_read_info(void *obj_hdl,
         size_t buf_len = 0;
         telf_status ret;
         FILE *out = NULL;
-        Elf64_Sym *sym = obj->parent->data;
+        ElfW(Sym) *sym = obj->parent->data;
 
         /* default value */
         symname = "NONAME";

@@ -53,7 +53,7 @@ headerfs_read_info(void *obj_hdl,
         char *buf = NULL;
         size_t buf_len = 0;
         FILE *out = NULL;
-        Elf64_Ehdr *ehdr = obj->ctx->ehdr;
+        ElfW(Ehdr) *ehdr = obj->ctx->ehdr;
 
         for (i = 0; i < EI_NIDENT; i++)
                 off += sprintf(ident_str + off, "%.2x ", ehdr->e_ident[i]);
@@ -254,7 +254,7 @@ headerfs_release_entrypoint(void *obj_hdl)
 
         cont = obj->data;
         if (cont) {
-                Elf64_Addr addr = (Elf64_Addr) strtoull(cont->buf, NULL, 0);
+                ElfW(Addr) addr = (ElfW(Addr)) strtoull(cont->buf, NULL, 0);
                 DEBUG("new entry point: %p", (void *) addr);
                 obj->ctx->ehdr->e_entry = addr;
         }
@@ -271,7 +271,7 @@ headerfs_release_ident(void *obj_hdl)
         telf_obj *obj = obj_hdl;
         telf_status ret;
         telf_default_content *cont = NULL;
-        Elf64_Ehdr *ehdr = obj->ctx->ehdr;
+        ElfW(Ehdr) *ehdr = obj->ctx->ehdr;
 
         DEBUG("name:%s data=%p", obj->name, obj->data);
 

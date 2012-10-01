@@ -46,7 +46,7 @@ int
 elf_getshstrtab(telf_ctx *ctx,
                 char **strtabp)
 {
-        Elf64_Shdr shdr;
+        ElfW(Shdr) shdr;
         int rc;
         size_t to_read;
         unsigned long addr;
@@ -82,7 +82,7 @@ elf_getshstrtab(telf_ctx *ctx,
 }
 
 
-Elf64_Shdr *
+ElfW(Shdr) *
 elf_getnsection(telf_ctx *ctx,
                 int n)
 {
@@ -94,9 +94,9 @@ elf_getnsection(telf_ctx *ctx,
 
 char *
 elf_getsectionname(telf_ctx *ctx,
-                   Elf64_Shdr *shdr)
+                   ElfW(Shdr) *shdr)
 {
-        Elf64_Shdr *sh_strtab = ctx->shdr + ctx->ehdr->e_shstrndx;
+        ElfW(Shdr) *sh_strtab = ctx->shdr + ctx->ehdr->e_shstrndx;
         char *sh_strtab_p = ctx->addr + sh_strtab->sh_offset;
 
         return sh_strtab_p + shdr->sh_name;
@@ -109,20 +109,20 @@ elf_getnsectionname(telf_ctx *ctx,
         if (n < 0 || n >= ctx->n_sections)
                 return NULL;
 
-        Elf64_Shdr *sh_strtab = ctx->shdr + ctx->ehdr->e_shstrndx;
+        ElfW(Shdr) *sh_strtab = ctx->shdr + ctx->ehdr->e_shstrndx;
         char *sh_strtab_p = ctx->addr + sh_strtab->sh_offset;
 
         return sh_strtab_p + ctx->shdr[n].sh_name;
 }
 
-Elf64_Shdr *
+ElfW(Shdr) *
 elf_getsectionbyname(telf_ctx *ctx,
                      char *name)
 {
         int i;
 
         for (i = 0; i < ctx->n_sections; i++) {
-                Elf64_Shdr *shdr = ctx->shdr + i;
+                ElfW(Shdr) *shdr = ctx->shdr + i;
                 char *i_name = elf_getsectionname(ctx, shdr);
 
                 if (0 == strcmp(i_name, name))
@@ -132,11 +132,11 @@ elf_getsectionbyname(telf_ctx *ctx,
         return NULL;
 }
 
-Elf64_Shdr *
+ElfW(Shdr) *
 elf_getsectionbytype(telf_ctx *ctx,
                      unsigned int type)
 {
-        Elf64_Shdr *shdr = NULL;
+        ElfW(Shdr) *shdr = NULL;
         int i;
         int found = 0;
 
@@ -155,19 +155,19 @@ elf_getsectionbytype(telf_ctx *ctx,
 
 char *
 elf_getsymname(telf_ctx *ctx,
-            Elf64_Sym *sym)
+               ElfW(Sym) *sym)
 {
         return &ctx->strtab[sym->st_name];
 }
 
 char *
 elf_getdsymname(telf_ctx *ctx,
-             Elf64_Sym *sym)
+                ElfW(Sym) *sym)
 {
         return &ctx->dstrtab[sym->st_name];
 }
 
-Elf64_Sym *
+ElfW(Sym) *
 elf_getnsym(telf_ctx *ctx,
             int n)
 {
@@ -177,7 +177,7 @@ elf_getnsym(telf_ctx *ctx,
         return ctx->symtab + n;
 }
 
-Elf64_Sym *
+ElfW(Sym) *
 elf_getndsym(telf_ctx *ctx,
              int n)
 {
@@ -187,12 +187,12 @@ elf_getndsym(telf_ctx *ctx,
         return ctx->dsymtab + n;
 }
 
-Elf64_Sym *
+ElfW(Sym) *
 elf_getsymbyname(telf_ctx *ctx,
                  char *name)
 {
         int i;
-        Elf64_Sym *sym = NULL;
+        ElfW(Sym) *sym = NULL;
 
         for (i = 0; i < ctx->n_syms; i++) {
                 sym = elf_getnsym(ctx, i);
@@ -205,14 +205,14 @@ elf_getsymbyname(telf_ctx *ctx,
         return sym;
 }
 
-Elf64_Sym *
+ElfW(Sym) *
 elf_getdsymbyname(telf_ctx *ctx,
                   char *name)
 {
         int i;
 
         for (i = 0; i < ctx->n_dsyms; i++) {
-                Elf64_Sym *sym = elf_getndsym(ctx, i);
+                ElfW(Sym) *sym = elf_getndsym(ctx, i);
                 if (0 == strcmp(name, elf_getdsymname(ctx, sym)))
                         return sym;
         }
@@ -221,7 +221,7 @@ elf_getdsymbyname(telf_ctx *ctx,
 }
 
 char *
-sym_bind_to_str(Elf64_Sym *sym)
+sym_bind_to_str(ElfW(Sym) *sym)
 {
         if (! sym)
                 return "unknown";
@@ -242,7 +242,7 @@ sym_bind_to_str(Elf64_Sym *sym)
 }
 
 char *
-sym_type_to_str(Elf64_Sym *sym)
+sym_type_to_str(ElfW(Sym) *sym)
 {
         if (! sym)
                 return "unknown";

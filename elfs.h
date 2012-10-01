@@ -13,6 +13,7 @@
 
 #include <pthread.h>
 #include <elf.h>
+#include <link.h>
 
 #include "fs-structs.h"
 #include "list.h"
@@ -69,19 +70,19 @@ typedef struct self_ctx {
         unsigned char *addr;
         pid_t pid;
 
-        Elf64_Ehdr *ehdr;       /* elf header */
-        Elf64_Shdr *shdr;       /* sections header */
-        Elf64_Phdr *phdr;       /* program header */
-        Elf64_Addr base_vaddr;  /* the virtual base address */
+        ElfW(Ehdr) *ehdr;       /* elf header */
+        ElfW(Shdr) *shdr;       /* sections header */
+        ElfW(Phdr) *phdr;       /* program header */
+        ElfW(Addr) base_vaddr;  /* the virtual base address */
         int n_sections;         /* number of sections */
 
         tlist *libpath;         /* paths where libs are located */
 
-        Elf64_Sym *symtab;      /* symbol table */
+        ElfW(Sym) *symtab;      /* symbol table */
         int n_syms;
         char *strtab;           /* string table */
 
-        Elf64_Sym *dsymtab;     /* dynamic symbol table */
+        ElfW(Sym) *dsymtab;     /* dynamic symbol table */
         int n_dsyms;
         char *dstrtab;          /* dynamic string table */
 

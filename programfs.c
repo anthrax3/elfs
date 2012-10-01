@@ -32,7 +32,7 @@ programfs_read_code(void *obj_hdl,
         telf_obj *obj = obj_hdl;
         telf_status ret;
         char realname[128];
-        Elf64_Shdr *shdr = NULL;
+        ElfW(Shdr) *shdr = NULL;
         char *buf = NULL;
         size_t buf_len = 0;
 

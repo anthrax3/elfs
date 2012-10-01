@@ -297,7 +297,7 @@ elf_compute_base_vaddr(telf_ctx *ctx)
         unsigned long min_vaddr = ~0;
 
         for (i = 0; i < ctx->ehdr->e_phnum; i++) {
-                Elf64_Phdr *phdr = ctx->phdr + i;
+                ElfW(Phdr) *phdr = ctx->phdr + i;
 
                 if (PT_LOAD != phdr->p_type)
                         continue;
@@ -316,9 +316,9 @@ elf_set_headers(telf_ctx *ctx)
 {
         telf_status ret;
 
-        ctx->ehdr = (Elf64_Ehdr *) ctx->addr;
-        ctx->shdr = (Elf64_Shdr *) (ctx->addr + ctx->ehdr->e_shoff);
-        ctx->phdr = (Elf64_Phdr *) (ctx->addr + ctx->ehdr->e_phoff);
+        ctx->ehdr = (ElfW(Ehdr) *) ctx->addr;
+        ctx->shdr = (ElfW(Shdr) *) (ctx->addr + ctx->ehdr->e_shoff);
+        ctx->phdr = (ElfW(Phdr) *) (ctx->addr + ctx->ehdr->e_phoff);
 
         ret = ELF_SUCCESS;
   end:
