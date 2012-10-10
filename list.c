@@ -188,16 +188,7 @@ list_add_uniq(tlist *q,
         if (list_get(q, elem))
                 return -1;
 
-        tnode *node = malloc(sizeof *node);
-        if (! node) {
-                perror("malloc");
-                return -1;
-        }
-
-        node->elem = elem;
-        node->next = NULL;
-
-        q->size++;
+        list_add(q, elem);
 
         return 0;
 }
