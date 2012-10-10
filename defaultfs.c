@@ -273,7 +273,7 @@ direntname(telf_dir_hdl *dir_hdl,
         return entry;
 }
 
-static int
+static void
 dir_ctor(telf_ctx *ctx,
          telf_obj *obj,
          telf_dir_hdl *dir)
