@@ -9,6 +9,7 @@
 #include "sectionfs.h"
 #include "defaultfs.h"
 #include "symbolfs.h"
+#include "fsapi.h"
 
 
 /* section directory object creation */
@@ -22,7 +23,7 @@ sectionfs_build(telf_ctx *ctx)
         telf_obj *sections_obj = NULL;
 
         ElfW(Shdr) *sh_strtab = ctx->shdr + ctx->ehdr->e_shstrndx;
-        char *sh_strtab_p = ctx->addr + sh_strtab->sh_offset;
+        unsigned char *sh_strtab_p = ctx->addr + sh_strtab->sh_offset;
 
         rc = elf_namei(ctx, "/sections", &sections_obj);
         if (ELF_SUCCESS != rc) {
@@ -40,7 +41,7 @@ sectionfs_build(telf_ctx *ctx)
                 ElfW(Shdr) *shdr = ctx->shdr + i;
                 telf_type type;
                 char name[128];
-                char *s_name = sh_strtab_p + shdr->sh_name;
+                unsigned char *s_name = sh_strtab_p + shdr->sh_name;
                 telf_obj *obj = NULL;
 
                 if (! *s_name)

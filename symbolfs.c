@@ -8,6 +8,7 @@
 #include "misc.h"
 #include "log.h"
 #include "defaultfs.h"
+#include "fsapi.h"
 
 
 static telf_status
@@ -33,7 +34,7 @@ symbolfs_symtab_build(telf_ctx *ctx)
         if (shdr) {
                 ctx->n_syms = shdr->sh_size / sizeof (ElfW(Sym));
                 ctx->symtab = (ElfW(Sym) *) (ctx->addr + shdr->sh_offset);
-                ctx->strtab = ctx->addr + ctx->shdr[shdr->sh_link].sh_offset;
+                ctx->strtab = (char *) ctx->addr + ctx->shdr[shdr->sh_link].sh_offset;
         }
 
         if (! ctx->n_syms) {
@@ -107,7 +108,8 @@ symbolfs_dynsym_build(telf_ctx *ctx)
         if (shdr) {
                 ctx->n_dsyms = shdr->sh_size / sizeof (ElfW(Sym));
                 ctx->dsymtab = (ElfW(Sym) *) (ctx->addr + shdr->sh_offset);
-                ctx->dstrtab = ctx->addr + ctx->shdr[shdr->sh_link].sh_offset;
+                ctx->dstrtab = (char *) ctx->addr +
+                        ctx->shdr[shdr->sh_link].sh_offset;
         }
 
         if (! ctx->n_dsyms) {

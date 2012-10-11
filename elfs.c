@@ -10,6 +10,9 @@
 #include <sys/mman.h>
 #include <stdlib.h>
 
+#include <sys/types.h>
+#include <sys/wait.h>
+
 #include <signal.h>
 
 #define SYSLOG_NAMES
@@ -18,6 +21,7 @@
 #include "elfs.h"
 #include "misc.h"
 #include "defaultfs.h"
+#include "programfs.h"
 #include "symbolfs.h"
 #include "rootfs.h"
 #include "sectionfs.h"

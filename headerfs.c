@@ -8,6 +8,7 @@
 #include "elfs.h"
 #include "defaultfs.h"
 #include "misc.h"
+#include "fsapi.h"
 
 #include "compat.h"
 

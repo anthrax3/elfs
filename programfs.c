@@ -8,6 +8,7 @@
 #include "elfs.h"
 #include "defaultfs.h"
 #include "programfs.h"
+#include "fsapi.h"
 
 
 static void

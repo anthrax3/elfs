@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "misc.h"
 
@@ -97,9 +98,9 @@ elf_getsectionname(telf_ctx *ctx,
                    ElfW(Shdr) *shdr)
 {
         ElfW(Shdr) *sh_strtab = ctx->shdr + ctx->ehdr->e_shstrndx;
-        char *sh_strtab_p = ctx->addr + sh_strtab->sh_offset;
+        unsigned char *sh_strtab_p = ctx->addr + sh_strtab->sh_offset;
 
-        return sh_strtab_p + shdr->sh_name;
+        return (char *) sh_strtab_p + shdr->sh_name;
 }
 
 char *
@@ -110,9 +111,9 @@ elf_getnsectionname(telf_ctx *ctx,
                 return NULL;
 
         ElfW(Shdr) *sh_strtab = ctx->shdr + ctx->ehdr->e_shstrndx;
-        char *sh_strtab_p = ctx->addr + sh_strtab->sh_offset;
+        unsigned char *sh_strtab_p = ctx->addr + sh_strtab->sh_offset;
 
-        return sh_strtab_p + ctx->shdr[n].sh_name;
+        return (char *) sh_strtab_p + ctx->shdr[n].sh_name;
 }
 
 ElfW(Shdr) *

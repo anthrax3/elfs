@@ -39,7 +39,7 @@ binary_to_asm(char *bin,
         FILE *out = NULL;
 
         ud_init(&ud_obj);
-        ud_set_input_buffer(&ud_obj, bin, bin_len);
+        ud_set_input_buffer(&ud_obj, (uint8_t *) bin, bin_len);
         ud_set_mode(&ud_obj, 64);
         ud_set_syntax(&ud_obj, UD_SYN_INTEL);
 

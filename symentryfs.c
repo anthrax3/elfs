@@ -43,7 +43,7 @@ symentryfs_read_asmcode(void *obj_hdl,
 
         if (STT_FUNC == ELF32_ST_TYPE(sym->st_info) && sym->st_size) {
                 offset = sym->st_value - obj->ctx->base_vaddr;
-                rc = binary_to_asm(obj->ctx->addr + offset,
+                rc = binary_to_asm((char *) obj->ctx->addr + offset,
                                    sym->st_size,
                                    &buf,
                                    &buf_len);

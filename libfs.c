@@ -6,7 +6,7 @@
 #include "log.h"
 #include "misc.h"
 #include "libfs.h"
-
+#include "fsapi.h"
 
 typedef struct {
         char *l_name;
