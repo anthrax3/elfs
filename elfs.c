@@ -269,7 +269,7 @@ elf_sanity_check(unsigned char *addr)
 {
         telf_status ret;
 
-        if (strncmp(addr, ELFMAG, SELFMAG))
+        if (strncmp((const char *) addr, ELFMAG, SELFMAG))
                 ERR("bad magic: %*s", SELFMAG, addr);
 
         if (ELFCLASSNONE == addr + EI_CLASS) {
