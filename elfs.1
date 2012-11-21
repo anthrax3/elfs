@@ -1,0 +1,53 @@
+.TH fdup 1  "2012-11-21" "version 0.1" "USER COMMANDS"
+.SH NAME
+
+elfs \- mount a filesystem of top of ELF binaries
+
+.SH SYNOPSIS
+
+.B elfs
+<\-p pid | binary_path> [\-d] <mountpoint>
+
+.SH DESCRIPTION
+This tool is mostly for educational purposes.  It allows the user to explore an ELF file as a filesystem, using FUSE as a glue.  You can inspect both files on disk or running processes, although the latest is quite experimental.
+.PP
+
+.SH OPTIONS
+
+.TP
+\-p pid,
+Inspect the process with id `pid`
+.TP
+
+\-d,
+FUSE debug mode.  To see FUSE operations, return codes, and so on.
+
+.SH EXAMPLES
+
+.TP
+
+Explore the xclock(1) process, and mount the image /tmp/elf
+
+.RS
+.B elfs
+-p `pidof xclock` /tmp/elf
+
+.RE
+Analysis of the foo.o file
+
+.RS
+.B elfs
+foo.o /tmp/elf
+
+.PP
+
+.SH NOTES
+This "thing" is probably full of ugly bugs, please report bugs and comments to https://github.com/pozdnychev/elfs/issues
+
+Keep in mind that you must be root to attach running processes.  Also, if you really want some information about a binary, do not compile it without debug symbols.
+
+.SH AUTHOR
+Guillaume LECONTE <guillaume@bk.ru>
+
+.SH SEE ALSO
+fuse(8) mount(8) elf(5)
