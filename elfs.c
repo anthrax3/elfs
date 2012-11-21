@@ -172,6 +172,35 @@ elf_obj_cmp_func(void *key_,
         return strcmp(key, elem->name);
 }
 
+void
+elf_obj_ref_nolock(telf_obj *obj)
+{
+        obj->refcount++;
+}
+
+void
+elf_obj_ref(telf_obj *obj)
+{
+        elf_obj_lock(obj);
+        elf_obj_ref_nolock(obj);
+        elf_obj_unlock(obj);
+}
+
+void
+elf_obj_unref_nolock(telf_obj *obj)
+{
+        assert(obj->refcount > 0);
+        obj->refcount--;
+}
+
+void
+elf_obj_unref(telf_obj *obj)
+{
+        elf_obj_lock(obj);
+        elf_obj_unref_nolock(obj);
+        elf_obj_unlock(obj);
+}
+
 telf_obj *
 elf_obj_new(telf_ctx *ctx,
             char *path,
@@ -198,6 +227,7 @@ elf_obj_new(telf_ctx *ctx,
                 goto err;
         }
 
+        obj->refcount = 0;
         obj->ctx = ctx;
         obj->parent = parent;
         obj->type = type;

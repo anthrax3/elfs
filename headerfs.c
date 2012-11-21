@@ -231,6 +231,9 @@ headerfs_release_version(void *obj_hdl)
 
         DEBUG("name:%s data=%p", obj->name, obj->data);
 
+        elf_obj_lock(obj);
+        elf_obj_unref_nolock(obj);
+
         cont = obj->data;
         if (cont) {
                 unsigned char v = atoi(cont->buf);
@@ -238,8 +241,9 @@ headerfs_release_version(void *obj_hdl)
                 obj->ctx->ehdr->e_version = v;
         }
 
+        elf_obj_unlock(obj);
+
         ret = ELF_SUCCESS;
-  end:
 
         return ret;
 }
@@ -253,6 +257,9 @@ headerfs_release_entrypoint(void *obj_hdl)
 
         DEBUG("name:%s data=%p", obj->name, obj->data);
 
+        elf_obj_lock(obj);
+        elf_obj_unref_nolock(obj);
+
         cont = obj->data;
         if (cont) {
                 ElfW(Addr) addr = (ElfW(Addr)) strtoull(cont->buf, NULL, 0);
@@ -260,8 +267,9 @@ headerfs_release_entrypoint(void *obj_hdl)
                 obj->ctx->ehdr->e_entry = addr;
         }
 
+        elf_obj_unlock(obj);
+
         ret = ELF_SUCCESS;
-  end:
 
         return ret;
 }
@@ -276,6 +284,9 @@ headerfs_release_ident(void *obj_hdl)
 
         DEBUG("name:%s data=%p", obj->name, obj->data);
 
+        elf_obj_lock(obj);
+        elf_obj_unref_nolock(obj);
+
         cont = obj->data;
         if (cont) {
                 int i;
@@ -286,8 +297,9 @@ headerfs_release_ident(void *obj_hdl)
                 }
         }
 
+        elf_obj_unlock(obj);
+
         ret = ELF_SUCCESS;
-  end:
 
         return ret;
 }

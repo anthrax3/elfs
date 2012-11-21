@@ -59,6 +59,8 @@ typedef struct self_obj {
         telf_stat st;            /* our own struct stat */
         tlist *entries;          /* if directory: list of entries */
 
+        uint32_t refcount;
+
         pthread_mutex_t lock;
 } telf_obj;
 
@@ -95,4 +97,8 @@ telf_obj *elf_obj_new(telf_ctx *, char *, telf_obj *, telf_type, telf_ftype);
 void elf_obj_free(telf_obj *obj);
 void elf_obj_lock(telf_obj *obj);
 void elf_obj_unlock(telf_obj *obj);
+void elf_obj_ref_nolock(telf_obj *obj);
+void elf_obj_ref(telf_obj *obj);
+void elf_obj_unref_nolock(telf_obj *obj);
+void elf_obj_unref(telf_obj *obj);
 #endif /* ELFS_H */
