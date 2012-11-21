@@ -2,7 +2,7 @@ PROGNAME=elfs
 MANFILE=${PROGNAME}.1
 MANDIR=/usr/local/man/man1
 
-CC=gcc
+CC?=gcc
 
 DESTDIR=/usr/local
 BINDIR=${DESTDIR}/bin
