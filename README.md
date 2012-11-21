@@ -6,11 +6,8 @@ the structure of an ELF object.
 0. INSTALLATION
 ===============
 
-Prerequisite: install the libudis86. Check the installation procedure on:
-
+    Prerequisite: install the libudis86. Check the installation procedure on:
     http://udis86.sourceforge.net
-
-Then:
 
     $ git clone git://github.com/pozdnychev/elfs
     $ cd elfs
