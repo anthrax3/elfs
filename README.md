@@ -6,8 +6,8 @@ the structure of an ELF object.
 0. INSTALLATION
 ===============
 
-    Prerequisite: install the libudis86. Check the installation procedure on:
-    http://udis86.sourceforge.net
+Prerequisite: install the libudis86. Check the installation procedure on:
+http://udis86.sourceforge.net
 
     $ git clone git://github.com/pozdnychev/elfs
     $ cd elfs
@@ -115,10 +115,11 @@ If you want to inspect the sections:
 
 We set the rwx bits, according to the Section Header flags:
 
-SHR_WRITE     -> w bit
-SHR_ALLOC     -> r bit
-SHR_EXECINSTR -> x bits
+   SHR_WRITE     -> w bit
+   SHR_ALLOC     -> r bit
+   SHR_EXECINSTR -> x bits
 
+Check the bin/asm code of a function:
 
     $ ll /tmp/elf/sections/symtab/dup_cmp_gid/
     total 0
