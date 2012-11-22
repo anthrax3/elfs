@@ -227,21 +227,23 @@ headerfs_release_version(void *obj_hdl)
 {
         telf_obj *obj = obj_hdl;
         telf_status ret;
-        telf_default_content *cont = NULL;
+        telf_default_content *content= NULL;
 
         DEBUG("name:%s data=%p", obj->name, obj->data);
 
-        elf_obj_lock(obj);
-        elf_obj_unref_nolock(obj);
-
-        cont = obj->data;
-        if (cont) {
-                unsigned char v = atoi(cont->buf);
+        content= obj->data;
+        if (content) {
+                unsigned char v = atoi(content->buf);
                 DEBUG("new version: %d", v);
                 obj->ctx->ehdr->e_version = v;
         }
 
-        elf_obj_unlock(obj);
+        if (0 == obj->refcount) {
+                if (obj->free_func) {
+                        obj->free_func(obj->data);
+                        obj->data = NULL;
+                }
+        }
 
         ret = ELF_SUCCESS;
 
@@ -253,21 +255,23 @@ headerfs_release_entrypoint(void *obj_hdl)
 {
         telf_obj *obj = obj_hdl;
         telf_status ret;
-        telf_default_content *cont = NULL;
+        telf_default_content *content= NULL;
 
         DEBUG("name:%s data=%p", obj->name, obj->data);
 
-        elf_obj_lock(obj);
-        elf_obj_unref_nolock(obj);
-
-        cont = obj->data;
-        if (cont) {
-                ElfW(Addr) addr = (ElfW(Addr)) strtoull(cont->buf, NULL, 0);
+        content= obj->data;
+        if (content) {
+                ElfW(Addr) addr = (ElfW(Addr)) strtoull(content->buf, NULL, 0);
                 DEBUG("new entry point: %p", (void *) addr);
                 obj->ctx->ehdr->e_entry = addr;
         }
 
-        elf_obj_unlock(obj);
+        if (0 == obj->refcount) {
+                if (obj->free_func) {
+                        obj->free_func(obj->data);
+                        obj->data = NULL;
+                }
+        }
 
         ret = ELF_SUCCESS;
 
@@ -279,25 +283,24 @@ headerfs_release_ident(void *obj_hdl)
 {
         telf_obj *obj = obj_hdl;
         telf_status ret;
-        telf_default_content *cont = NULL;
+        telf_default_content *content= NULL;
         ElfW(Ehdr) *ehdr = obj->ctx->ehdr;
 
         DEBUG("name:%s data=%p", obj->name, obj->data);
 
-        elf_obj_lock(obj);
-        elf_obj_unref_nolock(obj);
-
-        cont = obj->data;
-        if (cont) {
+        content= obj->data;
+        if (content) {
                 int i;
 
                 for (i = 0; i < EI_NIDENT; i++) {
-                        char tmp[3] = { cont->buf[2*i], cont->buf[2*i+1], 0 };
+                        char tmp[3] = {
+                          content->buf[2*i],
+                          content->buf[2*i+1],
+                          0
+                        };
                         ehdr->e_ident[i] = (uint8_t) strtoul(tmp, NULL, 16);
                 }
         }
-
-        elf_obj_unlock(obj);
 
         ret = ELF_SUCCESS;
 
@@ -340,6 +343,7 @@ headerfs_release(void *obj_hdl)
         telf_status rc;
 
         elf_obj_lock(obj);
+        elf_obj_unref_nolock(obj);
 
         DEBUG("name:%s data=%p", obj->name, obj->data);
 
@@ -360,13 +364,15 @@ headerfs_release(void *obj_hdl)
                 }
         }
 
+        if (0 == obj->refcount) {
+                if (obj->free_func) {
+                        obj->free_func(obj->data);
+                        obj->data = NULL;
+                }
+        }
+
         ret = ELF_SUCCESS;
   end:
-
-        if (obj->free_func) {
-                obj->free_func(obj->data);
-                obj->data = NULL;
-        }
 
         elf_obj_unlock(obj);
 
