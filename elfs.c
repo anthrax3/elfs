@@ -132,15 +132,11 @@ elf_obj_free(telf_obj *obj)
         if (obj->entries)
                 list_free(obj->entries);
 
-        if (obj->name)
-                free(obj->name);
-
-        if (obj->driver)
-                free(obj->driver);
-
         if (obj->free_func)
                 obj->free_func(obj->data);
 
+        free(obj->name);
+        free(obj->driver);
         free(obj);
 }
 
@@ -277,14 +273,9 @@ elf_ctx_free(telf_ctx *ctx)
                                 ERR("ptrace_detach: %s", strerror(errno));
                         }
 
-                        if (ctx->ehdr)
-                                free(ctx->ehdr);
-
-                        if (ctx->shdr)
-                                free(ctx->shdr);
-
-                        if (ctx->phdr)
-                                free(ctx->phdr);
+                        free(ctx->ehdr);
+                        free(ctx->shdr);
+                        free(ctx->phdr);
                 }
 
                 if (ctx->libpath)

@@ -29,12 +29,8 @@ elf_libpath_free(void *lp_)
         telf_libpath *lp = lp_;
 
         if (lp) {
-                if (lp->l_name)
-                        free(lp->l_name);
-
-                if (lp->l_path)
-                        free(lp->l_path);
-
+                free(lp->l_name);
+                free(lp->l_path);
                 free(lp);
         }
 }

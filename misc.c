@@ -76,8 +76,7 @@ elf_getshstrtab(telf_ctx *ctx,
 
         return 0;
   err:
-        if (strtab)
-                free(strtab);
+        free(strtab);
 
         return -1;
 }

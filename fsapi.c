@@ -626,8 +626,7 @@ elf_fs_readlink(const char *path,
 
         ret = 0;
   end:
-        if (tmpbuf)
-                free(tmpbuf);
+        free(tmpbuf);
 
         DEBUG("path=%s => buf=%s, ret=%d", path, tmpbuf, ret);
         return ret;

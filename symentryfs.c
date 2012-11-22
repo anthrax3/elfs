@@ -21,9 +21,7 @@ symentryfs_freecontent(void *data)
         if (! content)
                 return;
 
-        if (content->buf)
-                free(content->buf);
-
+        free(content->buf);
         free(content);
 }
 
