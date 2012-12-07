@@ -225,22 +225,15 @@ headerfs_release_version(void *obj_hdl)
 {
         telf_obj *obj = obj_hdl;
         telf_status ret;
-        telf_default_content *content= NULL;
+        telf_default_content *content = NULL;
 
         DEBUG("name:%s data=%p", obj->name, obj->data);
 
-        content= obj->data;
+        content = obj->data;
         if (content) {
                 unsigned char v = atoi(content->buf);
                 DEBUG("new version: %d", v);
                 obj->ctx->ehdr->e_version = v;
-        }
-
-        if (0 == obj->refcount) {
-                if (obj->free_func) {
-                        obj->free_func(obj->data);
-                        obj->data = NULL;
-                }
         }
 
         ret = ELF_SUCCESS;
@@ -253,22 +246,15 @@ headerfs_release_entrypoint(void *obj_hdl)
 {
         telf_obj *obj = obj_hdl;
         telf_status ret;
-        telf_default_content *content= NULL;
+        telf_default_content *content = NULL;
 
         DEBUG("name:%s data=%p", obj->name, obj->data);
 
-        content= obj->data;
+        content = obj->data;
         if (content) {
                 ElfW(Addr) addr = (ElfW(Addr)) strtoull(content->buf, NULL, 0);
                 DEBUG("new entry point: %p", (void *) addr);
                 obj->ctx->ehdr->e_entry = addr;
-        }
-
-        if (0 == obj->refcount) {
-                if (obj->free_func) {
-                        obj->free_func(obj->data);
-                        obj->data = NULL;
-                }
         }
 
         ret = ELF_SUCCESS;
@@ -281,12 +267,12 @@ headerfs_release_ident(void *obj_hdl)
 {
         telf_obj *obj = obj_hdl;
         telf_status ret;
-        telf_default_content *content= NULL;
+        telf_default_content *content = NULL;
         ElfW(Ehdr) *ehdr = obj->ctx->ehdr;
 
         DEBUG("name:%s data=%p", obj->name, obj->data);
 
-        content= obj->data;
+        content = obj->data;
         if (content) {
                 int i;
 
