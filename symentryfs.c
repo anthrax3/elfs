@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
-#include <udis86.h>
-
 #include "log.h"
 #include "symentryfs.h"
 #include "misc.h"
