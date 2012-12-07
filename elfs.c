@@ -357,15 +357,25 @@ elf_mmap_internal(telf_ctx *ctx)
         telf_status ret;
         telf_status rc;
         void *addr = NULL;
+        int mmap_flags;
+        int open_flags;
 
-        fd = open(ctx->binpath, 0666, O_RDWR);
+        if (-1 == ctx->pid) {
+                mmap_flags = PROT_READ | PROT_WRITE;
+                open_flags = O_RDWR;
+        } else {
+                mmap_flags = PROT_READ;
+                open_flags = O_RDONLY;
+        }
+
+        fd = open(ctx->binpath, open_flags);
         if (-1 == fd) {
                 ERR("open '%s': %s", ctx->binpath, strerror(errno));
                 ret = ELF_FAILURE;
                 goto err;
         }
 
-        addr = mmap(NULL, ctx->st.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+        addr = mmap(NULL, ctx->st.st_size, mmap_flags, MAP_SHARED, fd, 0);
         if (MAP_FAILED == addr) {
                 ERR("mmap: %s", strerror(errno));
                 ret = ELF_FAILURE;
