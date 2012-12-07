@@ -119,6 +119,12 @@ We set the rwx bits, according to the Section Header flags:
    SHR_ALLOC     -> r bit
    SHR_EXECINSTR -> x bits
 
+
+You can read the whole program binary code (in assembler) with the following command:
+
+    $ cat /tmp/elf/sections/text/code.asm
+
+
 Check the bin/asm code of a function:
 
     $ ll /tmp/elf/sections/symtab/dup_cmp_gid/
