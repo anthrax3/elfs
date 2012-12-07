@@ -24,9 +24,54 @@ programfs_freecontent(void *data)
 }
 
 static telf_status
-programfs_read_code(void *obj_hdl,
-                    char **bufp,
-                    size_t *buf_lenp)
+programfs_read_asmcode(void *obj_hdl,
+                       char **bufp,
+                       size_t *buf_lenp)
+{
+        telf_obj *obj = obj_hdl;
+        telf_status ret;
+        telf_status rc;
+        ElfW(Shdr) *shdr = NULL;
+        char *buf = NULL;
+        size_t buf_len = 0;
+        char realname[128];
+
+        sprintf(realname, ".%s", obj->parent->name);
+
+        shdr = elf_getsectionbyname(obj->ctx, realname);
+        if (! shdr) {
+                ERR("section '%s' not found", realname);
+                ret = ELF_FAILURE;
+                goto end;
+        }
+
+        rc = binary_to_asm((char *) obj->ctx->addr + shdr->sh_offset,
+                           shdr->sh_size,
+                           &buf,
+                           &buf_len);
+        if (ELF_SUCCESS != rc) {
+                ERR("can't extract asm code from binary");
+                ret = rc;
+                goto end;
+        }
+
+        ret = ELF_SUCCESS;
+  end:
+        if (bufp)
+                *bufp = buf;
+        else
+                free(buf);
+
+        if (buf_lenp)
+                *buf_lenp = buf_len;
+
+        return ret;
+}
+
+static telf_status
+programfs_read_bincode(void *obj_hdl,
+                       char **bufp,
+                       size_t *buf_lenp)
 {
         telf_obj *obj = obj_hdl;
         telf_status ret;
@@ -65,7 +110,8 @@ programfs_read_code(void *obj_hdl,
 }
 
 static telf_fcb programfs_fcb[] = {
-        { "code", programfs_read_code, programfs_freecontent },
+        { "code",     programfs_read_bincode, programfs_freecontent },
+        { "code.asm", programfs_read_asmcode, programfs_freecontent },
 };
 
 
@@ -77,8 +123,20 @@ section_ctor_cb(void *obj_hdl,
         telf_obj *obj = obj_hdl;
         telf_obj *entry = NULL;
         telf_status rc;
+        ElfW(Shdr) *shdr = NULL;
+        char realname[128];
+
+        sprintf(realname, ".%s", obj->name);
+        shdr = elf_getsectionbyname(obj->ctx, realname);
+        if (! shdr) {
+                ERR("can't find any section with name '%s'", realname);
+                return;
+        }
 
         if (ELF_SECTION_PROGBITS != obj->type)
+                return;
+
+        if (! (SHF_EXECINSTR & shdr->sh_flags))
                 return;
 
         for (i = 0; i < N_ELEMS(programfs_fcb); i++) {
