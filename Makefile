@@ -11,7 +11,7 @@ SRC=$(wildcard *.c)
 OBJS=$(SRC:.c=.o)
 
 COMMON_CFLAGS=-D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -I/usr/local/include
-COMMON_LDFLAGS=-lfuse -L /usr/local/lib  -ludis86
+COMMON_LDFLAGS=-lfuse -L /usr/local/lib
 
 PROD_CFLAGS=-O3 $(COMMON_CFLAGS)
 PROD_LDFLAGS=$(COMMON_LDFLAGS)

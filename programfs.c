@@ -45,7 +45,8 @@ programfs_read_asmcode(void *obj_hdl,
                 goto end;
         }
 
-        rc = binary_to_asm((char *) obj->ctx->addr + shdr->sh_offset,
+        rc = binary_to_asm(obj->ctx->binpath,
+                           (char *) obj->ctx->base_vaddr + shdr->sh_offset,
                            shdr->sh_size,
                            &buf,
                            &buf_len);

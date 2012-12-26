@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <udis86.h>
-
 #include "log.h"
 #include "utils.h"
 
@@ -27,7 +25,8 @@ elf_status_to_str(telf_status status)
 
 
 telf_status
-binary_to_asm(char *bin,
+binary_to_asm(char *obj_path,
+              char *start_addr,
               size_t bin_len,
               char **bufp,
               size_t *buf_lenp)
@@ -35,15 +34,12 @@ binary_to_asm(char *bin,
         telf_status ret;
         char *buf = NULL;
         size_t buf_len = 0;
-        ud_t ud_obj;
         FILE *out = NULL;
+        FILE *objdump = NULL;
+        char cmd[256] = "";
+        char line[128] = "";
 
-        ud_init(&ud_obj);
-        ud_set_input_buffer(&ud_obj, (uint8_t *) bin, bin_len);
-        ud_set_mode(&ud_obj, 64);
-        ud_set_syntax(&ud_obj, UD_SYN_INTEL);
-
-        if (! bin_len || ! bin) {
+        if (! bin_len || ! start_addr) {
                 ret = ELF_SUCCESS;
                 goto end;
         }
@@ -55,15 +51,29 @@ binary_to_asm(char *bin,
                 goto end;
         }
 
-        while (ud_disassemble(&ud_obj)) {
-                char line[64] = "";
-                size_t len;
+        (void) snprintf(cmd, sizeof cmd, "objdump -D "
+                        "--start-address=%p "
+                        "--stop-address=%p %s",
+                        (void *) start_addr,
+                        (void *) (start_addr + bin_len),
+                        obj_path);
 
-                fprintf(out, "%s\n", ud_insn_asm(&ud_obj));
+        objdump = popen(cmd, "r");
+        if (! objdump) {
+                ERR("popen(%s): %s", cmd, strerror(errno));
+                ret = ELF_FAILURE;
+                goto end;
         }
+
+        while (fgets(line, sizeof line - 1, objdump))
+                fprintf(out, "%s", line);
 
         ret = ELF_SUCCESS;
   end:
+
+        if (objdump)
+                pclose(objdump);
+
         if (out)
                 fclose(out);
 
