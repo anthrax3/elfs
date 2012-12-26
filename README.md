@@ -176,29 +176,30 @@ We can check that the code is correct just by taking a look at the binary:
 The code symbol is 44 bytes longs, so it ends at 0x401af0 + 0x2c (44 in hexa), which
 is 0x401b1c.
 
-   $ objdump -D --start-address=0x401af0 --stop-address=0x401b1c /usr/local/bin/fdup
 
-   /usr/local/bin/fdup:     file format elf64-x86-64
+    $ objdump -D --start-address=0x401af0 --stop-address=0x401b1c /usr/local/bin/fdup
+
+    /usr/local/bin/fdup:     file format elf64-x86-64
 
 
-   Disassembly of section .text:
+    Disassembly of section .text:
 
-   0000000000401af0 <dup_cmp_gid>:
-     401af0:       55                      push   %rbp
-     401af1:       48 89 e5                mov    %rsp,%rbp
-     401af4:       48 89 7d f8             mov    %rdi,-0x8(%rbp)
-     401af8:       48 89 75 f0             mov    %rsi,-0x10(%rbp)
-     401afc:       48 8b 45 f8             mov    -0x8(%rbp),%rax
-     401b00:       8b 50 20                mov    0x20(%rax),%edx
-     401b03:       48 8b 45 f0             mov    -0x10(%rbp),%rax
-     401b07:       8b 40 20                mov    0x20(%rax),%eax
-     401b0a:       39 c2                   cmp    %eax,%edx
-     401b0c:       75 07                   jne    401b15 <dup_cmp_gid+0x25>
-     401b0e:       b8 00 00 00 00          mov    $0x0,%eax
-     401b13:       eb 05                   jmp    401b1a <dup_cmp_gid+0x2a>
-     401b15:       b8 ff ff ff ff          mov    $0xffffffff,%eax
-     401b1a:       5d                      pop    %rbp
-     401b1b:       c3                      retq
+    0000000000401af0 <dup_cmp_gid>:
+      401af0:       55                      push   %rbp
+      401af1:       48 89 e5                mov    %rsp,%rbp
+      401af4:       48 89 7d f8             mov    %rdi,-0x8(%rbp)
+      401af8:       48 89 75 f0             mov    %rsi,-0x10(%rbp)
+      401afc:       48 8b 45 f8             mov    -0x8(%rbp),%rax
+      401b00:       8b 50 20                mov    0x20(%rax),%edx
+      401b03:       48 8b 45 f0             mov    -0x10(%rbp),%rax
+      401b07:       8b 40 20                mov    0x20(%rax),%eax
+      401b0a:       39 c2                   cmp    %eax,%edx
+      401b0c:       75 07                   jne    401b15 <dup_cmp_gid+0x25>
+      401b0e:       b8 00 00 00 00          mov    $0x0,%eax
+      401b13:       eb 05                   jmp    401b1a <dup_cmp_gid+0x2a>
+      401b15:       b8 ff ff ff ff          mov    $0xffffffff,%eax
+      401b1a:       5d                      pop    %rbp
+      401b1b:       c3                      retq
 
 
 You can also attach a running process but the feature being pretty experimental,
