@@ -130,8 +130,8 @@ defaultfs_read(void *obj_hdl,
 
         content = obj->data;
 
-        if (size > content->buf_len)
-                size = content->buf_len;
+        if (size > content->buf_len - offset)
+                size = content->buf_len - offset;
 
         memcpy(buf, content->buf + offset, size);
 
@@ -164,8 +164,8 @@ defaultfs_write(void *obj_hdl,
 
         content = obj->data;
 
-        if (size > content->buf_len)
-                size = content->buf_len;
+        if (size > content->buf_len - offset)
+                size = content->buf_len - offset;
 
         memcpy(content->buf + offset, buf, size);
 
