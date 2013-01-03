@@ -1,16 +1,22 @@
 PROGNAME=elfs
-MANFILE=${PROGNAME}.1
-MANDIR=/usr/local/man/man1
+MANFILE=man/${PROGNAME}.1
 
 CC?=gcc
 
 DESTDIR=/usr/local
-BINDIR=${DESTDIR}/bin
+OBJDIR=objs
+SRCDIR=src
+INCDIR=include
+BINDIR=bin
+MANDIR=man
 
-SRC=$(wildcard *.c)
-OBJS=$(SRC:.c=.o)
+DESTMANDIR=$(DESTDIR)/man/man1
+DESTBINDIR=$(DESTDIR)/bin
 
-COMMON_CFLAGS=-D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -I/usr/local/include
+SRC=$(wildcard $(SRCDIR)/*.c)
+OBJS=$(addprefix $(OBJDIR)/,$(patsubst %.c,%.o,$(notdir $(SRC))))
+
+COMMON_CFLAGS=-D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -I$(INCDIR) -I/usr/local/include
 COMMON_LDFLAGS=-lfuse -L /usr/local/lib
 
 PROD_CFLAGS=-O3 $(COMMON_CFLAGS)
@@ -31,19 +37,20 @@ debug: compile
 
 compile: $(PROGNAME)
 
-elfs: $(OBJS)
-	$(CC) -o $(PROGNAME) $(CFLAGS) $^ $(LDFLAGS)
+$(PROGNAME): $(OBJS)
+	@echo objs: $(OBJS)
+	$(CC) -o $(BINDIR)/$(PROGNAME) $(CFLAGS) $^ $(LDFLAGS)
 
-.c.o:
-	$(CC) $(CFLAGS) -c $<
+$(OBJDIR)/%.o: $(SRCDIR)/%.c $(INCDIR)/%.h
+	$(CC) $(CFLAGS) -o $@ -c $<
 
 install:
-	install -m755 $(PROGNAME) $(BINDIR)
-	install -m644 ${MANFILE} ${MANDIR}
+	install -m755 bin/$(PROGNAME) $(DESTBINDIR)
+	install -m644 man/$(MANFILE) $(DESTMANDIR)
 
 uninstall:
-	rm -f $(BINDIR)/$(PROGNAME)
-	rm -f ${MANDIR}/${MANFILE}
+	rm -f $(DESTBINDIR)/$(PROGNAME)
+	rm -f $(DESTMANDIR)/$(MANFILE)
 
 clean:
-	rm -f *.o $(PROGNAME)
+	rm -f objs/*.o $(BINDIR)/$(PROGNAME)
