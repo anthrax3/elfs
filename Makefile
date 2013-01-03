@@ -1,5 +1,4 @@
 PROGNAME=elfs
-MANFILE=man/${PROGNAME}.1
 
 CC?=gcc
 
@@ -9,6 +8,9 @@ SRCDIR=src
 INCDIR=include
 BINDIR=bin
 MANDIR=man
+
+MANFILE=$(MANDIR)/${PROGNAME}.1
+PROGFILE=$(BINDIR)/$(PROGNAME)
 
 DESTMANDIR=$(DESTDIR)/man/man1
 DESTBINDIR=$(DESTDIR)/bin
@@ -46,7 +48,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c $(INCDIR)/%.h
 
 install:
 	install -m755 bin/$(PROGNAME) $(DESTBINDIR)
-	install -m644 man/$(MANFILE) $(DESTMANDIR)
+	install -m644 $(MANFILE) $(DESTMANDIR)
 
 uninstall:
 	rm -f $(DESTBINDIR)/$(PROGNAME)
