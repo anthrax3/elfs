@@ -229,7 +229,7 @@ elf_obj_new(telf_ctx *ctx,
         obj->type = type;
 
         if (ELF_S_ISDIR(ftype)) {
-                obj->st.st_mode |= ELF_S_IFDIR;
+                obj->st.mode |= ELF_S_IFDIR;
                 obj->entries = list_new();
                 if (! obj->entries) {
                         ERR("can't create list entries");
@@ -239,7 +239,7 @@ elf_obj_new(telf_ctx *ctx,
                 list_set_free_func(obj->entries, elf_obj_free_func);
                 list_set_cmp_func(obj->entries, elf_obj_cmp_func);
         } else {
-                obj->st.st_mode |= ELF_S_IFREG;
+                obj->st.mode |= ELF_S_IFREG;
         }
 
         obj->driver = defaultfs_driver_new();

@@ -80,11 +80,11 @@ sectionfs_build(telf_ctx *ctx)
                 }
 
                 if (SHF_WRITE & shdr->sh_flags)
-                        obj->st.st_mode |= ELF_S_IWUSR;
+                        obj->st.mode |= ELF_S_IWUSR;
                 if (SHF_ALLOC & shdr->sh_flags)
-                        obj->st.st_mode |= ELF_S_IRUSR;
+                        obj->st.mode |= ELF_S_IRUSR;
                 if (SHF_EXECINSTR & shdr->sh_flags)
-                        obj->st.st_mode |= ELF_S_IXUSR;
+                        obj->st.mode |= ELF_S_IXUSR;
 
                 list_add(sections_obj->entries, obj);
         }

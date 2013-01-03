@@ -39,18 +39,21 @@ elf_est_to_st(telf_stat *est,
         assert(NULL != st);
         assert(NULL != est);
 
-        st->st_nlink = est->st_nlink;
+        st->st_nlink = est->nlink;
+        st->st_atime = est->atime;
+        st->st_mtime = est->mtime;
+        st->st_ctime = est->ctime;
 
-        if (ELF_S_ISDIR(est->st_mode))
+        if (ELF_S_ISDIR(est->mode))
                 st->st_mode |= S_IFDIR;
 
-        if (ELF_S_ISREG(est->st_mode))
+        if (ELF_S_ISREG(est->mode))
                 st->st_mode |= S_IFREG;
 
-        if (ELF_S_ISLNK(est->st_mode))
+        if (ELF_S_ISLNK(est->mode))
                 st->st_mode |= S_IFLNK;
 
-#define X(f) if (ELF_S_##f & est->st_mode) st->st_mode |= S_##f
+#define X(f) if (ELF_S_##f & est->mode) st->st_mode |= S_##f
         X(IRWXU); // 00700 user
         X(IRUSR); // 00400 user has read permission
         X(IWUSR); // 00200 user has write permission
@@ -64,7 +67,7 @@ elf_est_to_st(telf_stat *est,
         X(IWOTH); // 00002 others have write permission
         X(IXOTH); // 00001 others have execute permission
 
-        st->st_size = est->st_size;
+        st->st_size = est->size;
 }
 
 telf_status
@@ -454,7 +457,7 @@ elf_fs_open(const char *path,
         open_flags = elf_set_open_flags(info->flags);
 
         /* check the credentials here */
-        if (0 != elf_check_cred(open_flags, obj->st.st_mode)) {
+        if (0 != elf_check_cred(open_flags, obj->st.mode)) {
                 ERR("wrong credentials for '%s'", path);
                 ret = -EPERM;
                 goto end;

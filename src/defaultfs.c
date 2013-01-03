@@ -24,11 +24,12 @@ defaultfs_getattr(void *obj_hdl,
         DEBUG("name:%s data=%p", obj->name, obj->data);
 
         memcpy(st, &obj->st, sizeof *st);
-        st->st_mode |= ELF_S_IRUSR|ELF_S_IWUSR | ELF_S_IRGRP | ELF_S_IROTH;
-        st->st_nlink = 1;
+        st->mode |= ELF_S_IRUSR|ELF_S_IWUSR | ELF_S_IRGRP | ELF_S_IROTH;
+        st->nlink = 1;
+        st->atime = st->mtime = st->ctime = time(NULL);
 
-        if (ELF_S_ISREG(obj->st.st_mode)) {
-                rc = obj->fill_func(obj, NULL, &st->st_size);
+        if (ELF_S_ISREG(obj->st.mode)) {
+                rc = obj->fill_func(obj, NULL, &st->size);
                 if (ELF_SUCCESS != rc) {
                         ret = rc;
                         goto end;

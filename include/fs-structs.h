@@ -1,9 +1,9 @@
-
 #ifndef FS_STRUCTS_H
 #define FS_STRUCTS_H
 
 #define FUSE_USE_VERSION 29
 #include <fuse.h>
+#include <time.h>
 
 typedef enum {
         ELF_S_IFDIR = (1u << 0),
@@ -29,9 +29,12 @@ typedef enum {
 #define ELF_S_ISLNK(mode) ((mode) & ELF_S_IFLNK)
 
 typedef struct {
-        size_t st_size;
-        size_t st_nlink;
-        telf_ftype st_mode;
+        size_t size;
+        size_t nlink;
+        telf_ftype mode;
+        time_t atime;
+        time_t mtime;
+        time_t ctime;
 } telf_stat;
 
 typedef enum {

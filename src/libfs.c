@@ -87,14 +87,14 @@ libfs_getattr(void *obj_hdl,
         elf_obj_lock(obj);
 
         memset(&st, 0, sizeof st);
-        st.st_mode |= ELF_S_IFLNK;
-        st.st_mode |= ELF_S_IRWXU|ELF_S_IRWXG|ELF_S_IRWXO;
+        st.mode |= ELF_S_IFLNK;
+        st.mode |= ELF_S_IRWXU|ELF_S_IRWXG|ELF_S_IRWXO;
 
         lp = list_get(obj->ctx->libpath, obj->name);
         if (lp && lp->l_path[0] == '/')
                 /* we don't the length of "foo => (0x424242)" to be 0
                  * since the destination doesn't exist on disk */
-                st.st_size = strlen(lp->l_path);
+                st.size = strlen(lp->l_path);
 
         ret = ELF_SUCCESS;
   end:
