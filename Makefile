@@ -40,14 +40,13 @@ debug: compile
 compile: $(PROGNAME)
 
 $(PROGNAME): $(OBJS)
-	@echo objs: $(OBJS)
 	$(CC) -o $(BINDIR)/$(PROGNAME) $(CFLAGS) $^ $(LDFLAGS)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(INCDIR)/%.h
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 install:
-	install -m755 bin/$(PROGNAME) $(DESTBINDIR)
+	install -m755 $(BINDIR)/$(PROGNAME) $(DESTBINDIR)
 	install -m644 $(MANFILE) $(DESTMANDIR)
 
 uninstall:
@@ -55,4 +54,4 @@ uninstall:
 	rm -f $(DESTMANDIR)/$(MANFILE)
 
 clean:
-	rm -f objs/*.o $(BINDIR)/$(PROGNAME)
+	rm -f $(OBJDIR)/*.o $(BINDIR)/$(PROGNAME)
