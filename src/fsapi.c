@@ -39,6 +39,8 @@ elf_est_to_st(telf_stat *est,
         assert(NULL != st);
         assert(NULL != est);
 
+        memset(st, 0, sizeof *st);
+
         st->st_nlink = est->nlink;
         st->st_atime = est->atime;
         st->st_mtime = est->mtime;
