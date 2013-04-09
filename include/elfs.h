@@ -65,8 +65,13 @@ typedef struct self_obj {
 } telf_obj;
 
 typedef struct self_ctx {
+        telf_fs_driver *driver;  /* set of fs callbacks */
+
         int loglevel;
-        pthread_mutex_t mutex;
+
+        pthread_mutex_t lock;
+        int lock_init;
+
         struct stat st;
         char binpath[PATH_MAX];
         unsigned char *addr;
@@ -95,10 +100,16 @@ typedef struct self_ctx {
 telf_fcb *elf_get_fcb(telf_fcb *fcb, int n_fcb, char *ident);
 telf_obj *elf_obj_new(telf_ctx *, char *, telf_obj *, telf_type, telf_ftype);
 void elf_obj_free(telf_obj *obj);
+
+void delf_ctx_lock(telf_ctx *ctx);
+void elf_ctx_unlock(telf_ctx *ctx);
+
 void elf_obj_lock(telf_obj *obj);
 void elf_obj_unlock(telf_obj *obj);
+
 void elf_obj_ref_nolock(telf_obj *obj);
 void elf_obj_ref(telf_obj *obj);
 void elf_obj_unref_nolock(telf_obj *obj);
 void elf_obj_unref(telf_obj *obj);
+
 #endif /* ELFS_H */

@@ -93,7 +93,7 @@ struct fuse_operations elf_fs_ops = {
         .utime       = elf_fs_utime,
         .flush       = elf_fs_flush,
         .fsyncdir    = elf_fs_fsyncdir,
-        // .init        = elf_fs_init,
+        .init        = elf_fs_init,
         // .destroy     = elf_fs_destroy,
         .access      = elf_fs_access,
         .releasedir  = elf_fs_releasedir,
@@ -138,6 +138,18 @@ elf_obj_free(telf_obj *obj)
         free(obj->name);
         free(obj->driver);
         free(obj);
+}
+
+void
+elf_ctx_lock(telf_ctx *ctx)
+{
+        pthread_mutex_lock(&ctx->lock);
+}
+
+void
+elf_ctx_unlock(telf_ctx *ctx)
+{
+        pthread_mutex_unlock(&ctx->lock);
 }
 
 void
@@ -262,6 +274,11 @@ static void
 elf_ctx_free(telf_ctx *ctx)
 {
         if (ctx) {
+                free(ctx->driver);
+
+                if (ctx->lock_init)
+                        pthread_mutex_destroy(&ctx->lock);
+
                 if (-1 == ctx->pid && ctx->addr)
                         (void) munmap((void *) ctx->addr, ctx->st.st_size);
 
@@ -420,6 +437,15 @@ elf_ctx_new(telf_options *opt)
 
         memset(ctx, 0, sizeof *ctx);
 
+        ctx->driver = defaultfs_driver_new();
+        if (! ctx->driver) {
+                ERR("driver allocation failed");
+                goto err;
+        }
+
+        pthread_mutex_init(&ctx->lock, NULL);
+        ctx->lock_init = 1;
+
         /* create the mountpoint if it doesn't exist with 0755 creds */
         iret = mkdir(opt->mountpoint,
                      S_IRWXU | S_IRGRP|S_IXGRP | S_IROTH|S_IXOTH);
@@ -523,12 +549,6 @@ elf_ctx_new(telf_options *opt)
   err:
         elf_ctx_free(ctx);
         return NULL;
-}
-
-static int
-elf_fuse_main(struct fuse_args *args)
-{
-        return fuse_main(args->argc, args->argv, &elf_fs_ops, NULL);
 }
 
 static void
@@ -659,7 +679,7 @@ main(int argc,
         }
 
         struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
-        ret = fuse_main(args.argc, args.argv, &elf_fs_ops, NULL);
+        ret = fuse_main(args.argc, args.argv, &elf_fs_ops, ctx);
   end:
         closelog();
 

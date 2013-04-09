@@ -67,24 +67,39 @@ elf_libpath_new(char *name,
 }
 
 static telf_status
-libfs_open(void *obj_hdl)
+libfs_open(void *ctx_hdl,
+           const char *path,
+           void **objp)
 {
         return ELF_FAILURE;
 }
 
 
 static telf_status
-libfs_getattr(void *obj_hdl,
+libfs_getattr(void *ctx_hdl,
+              const char *path,
               telf_stat *stp)
 {
-        telf_obj *obj = obj_hdl;
+        telf_ctx *ctx = ctx_hdl;
+        telf_obj *obj = NULL;
         telf_status ret;
         telf_status rc;
         telf_stat st;
         int i;
         telf_libpath *lp;
+        int locked = 0;
+
+        elf_ctx_lock(ctx);
+
+        rc = elf_namei(ctx, path, &obj);
+        if (ELF_SUCCESS != rc) {
+                ERR("namei(%s) failed: %d", path, rc);
+                ret = -ENOENT;
+                goto end;
+        }
 
         elf_obj_lock(obj);
+        locked = 1;
 
         memset(&st, 0, sizeof st);
         st.mode |= ELF_S_IFLNK;
@@ -99,7 +114,10 @@ libfs_getattr(void *obj_hdl,
         ret = ELF_SUCCESS;
   end:
 
-        elf_obj_unlock(obj);
+        if (locked)
+                elf_obj_unlock(obj);
+
+        elf_ctx_unlock(ctx);
 
         if (stp)
                 *stp = st;
@@ -107,16 +125,28 @@ libfs_getattr(void *obj_hdl,
 }
 
 telf_status
-libfs_readlink(void *obj_hdl,
+libfs_readlink(void *ctx_hdl,
+               const char *path,
                char **bufp,
                size_t *buf_lenp)
 {
-        telf_obj *obj = obj_hdl;
+        telf_ctx *ctx = ctx_hdl;
+        telf_obj *obj = NULL;
         telf_status ret;
+        telf_status rc;
         size_t buf_len = 0;
         char *buf = NULL;
         telf_libpath *lp = NULL;
         int iret;
+        int locked = 0;
+
+        elf_ctx_lock(ctx);
+
+        rc = elf_namei(ctx, path, &obj);
+        if (ELF_SUCCESS != rc) {
+                ret = -ENOENT;
+                goto end;
+        }
 
         elf_obj_lock(obj);
 
@@ -142,7 +172,10 @@ libfs_readlink(void *obj_hdl,
         ret = ELF_SUCCESS;
   end:
 
-        elf_obj_unlock(obj);
+        if (locked)
+                elf_obj_unlock(obj);
+
+        elf_ctx_unlock(ctx);
 
         if (bufp)
                 *bufp = buf;

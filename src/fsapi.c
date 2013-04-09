@@ -68,6 +68,7 @@ elf_est_to_st(telf_stat *est,
         X(IROTH); // 00004 others have read permission
         X(IWOTH); // 00002 others have write permission
         X(IXOTH); // 00001 others have execute permission
+#undef X
 
         st->st_size = est->size;
 }
@@ -213,23 +214,13 @@ int
 elf_fs_releasedir(const char *path,
                   struct fuse_file_info *info)
 {
-        telf_obj *obj = (telf_obj *) info->fh;
+        telf_ctx *ctx = fuse_get_context()->private_data;
         int ret;
         telf_status rc;
 
         DEBUG("%s", path);
 
-        if (! obj) {
-                rc = elf_namei(ctx, path, &obj);
-                if (ELF_SUCCESS != rc) {
-                        ERR("can't find object with key '%s': %s",
-                            path, elf_status_to_str(rc));
-                        ret = -1;
-                        goto end;
-                }
-        }
-
-        rc = obj->driver->releasedir(obj);
+        rc = ctx->driver->releasedir(ctx, path);
         if (ELF_SUCCESS != rc) {
                 ERR("releasedir failed: %s", elf_status_to_str(rc));
                 ret = rc;
@@ -256,7 +247,7 @@ elf_fs_fsyncdir(const char *path,
 void *
 elf_fs_init(struct fuse_conn_info *conn)
 {
-        return NULL;
+        return fuse_get_context()->private_data;
 }
 
 void
@@ -355,21 +346,14 @@ int
 elf_fs_getattr(const char *path,
                struct stat *st)
 {
-        telf_fs_driver *driver;
+        telf_ctx *ctx = fuse_get_context()->private_data;
         telf_stat est;
-        telf_obj *obj = NULL;
         telf_status rc;
         int ret;
 
         DEBUG("%s", path);
 
-        rc = elf_namei(ctx, path, &obj);
-        if (ELF_SUCCESS != rc) {
-                ret = -ENOENT;
-                goto end;
-        }
-
-        rc = obj->driver->getattr(obj, &est);
+        rc = ctx->driver->getattr(ctx, path, &est);
         if (ELF_SUCCESS != rc) {
                 ERR("getattr failed: %s", elf_status_to_str(rc));
                 ret = rc;
@@ -442,39 +426,17 @@ int
 elf_fs_open(const char *path,
             struct fuse_file_info *info)
 {
-        telf_obj *obj = NULL;
+        telf_ctx *ctx = fuse_get_context()->private_data;
         telf_status rc;
         int ret;
         telf_open_flags open_flags;
+        telf_obj *obj = NULL;
 
         DEBUG("path=%s", path);
 
-        rc = elf_namei(ctx, path, &obj);
-        if (ELF_SUCCESS != rc) {
-                ERR("namei(%s) failed: %d", path, rc);
-                ret = -ENOENT;
-                goto end;
-        }
-
         open_flags = elf_set_open_flags(info->flags);
 
-        /* check the credentials here */
-        if (0 != elf_check_cred(open_flags, obj->st.mode)) {
-                ERR("wrong credentials for '%s'", path);
-                ret = -EPERM;
-                goto end;
-        }
-
-        /*XXX weirdo... we should not have drivers alongside the obj...
-         *
-         * the open() callback is more like a constructor here, it fills
-         * the chunk associated to 'obj' with appropriate data
-         *
-         * from an API point of view it kind of sucks -- maybe I should
-         * rework the whole API and use a per-obj file handler, with
-         * global contextes, each one embedding its fs driver
-         */
-        rc = obj->driver->open(obj);
+        rc = ctx->driver->open(ctx, path, (void **) &obj);
         if (ELF_SUCCESS != rc) {
                 ERR("open failed: %s", elf_status_to_str(rc));
                 ret = -EIO;
@@ -495,19 +457,14 @@ elf_fs_read(const char *path,
             off_t offset,
             struct fuse_file_info *info)
 {
-        telf_obj *obj = (telf_obj *) info->fh;
+        telf_obj *ctx = fuse_get_context()->private_data;
         telf_status ret;
         telf_status rc;
         ssize_t cc;
 
         DEBUG("path=%s", path);
 
-        if (! obj) {
-                ret = -ENOENT;
-                goto end;
-        }
-
-        rc = obj->driver->read(obj, buf, size, offset, &cc);
+        rc = ctx->driver->read(ctx, path, buf, size, offset, &cc);
         if (rc != ELF_SUCCESS) {
                 ERR("%s: can't read %zu bytes @offset: %zd: %s",
                     path, size, offset, elf_status_to_str(rc));
@@ -527,24 +484,14 @@ elf_fs_write(const char *path,
              off_t offset,
              struct fuse_file_info *info)
 {
-        telf_obj *obj = (telf_obj *) info->fh;
+        telf_obj *ctx = fuse_get_context()->private_data;
         telf_status ret;
         telf_status rc;
         ssize_t cc;
 
         DEBUG("path=%s", path);
 
-        if (! obj) {
-                rc = elf_namei(ctx, path, &obj);
-                if (ELF_SUCCESS != rc) {
-                        ERR("can't find object with key '%s': %s",
-                            path, elf_status_to_str(rc));
-                        ret = -ENOENT;
-                        goto end;
-                }
-        }
-
-        rc = obj->driver->write(obj, buf, size, offset, &cc);
+        rc = ctx->driver->write(ctx, path, buf, size, offset, &cc);
         if (ELF_SUCCESS != rc) {
                 ERR("%s: can't write %zu bytes @offset: %zd: %s",
                     path, size, offset, elf_status_to_str(rc));
@@ -571,21 +518,13 @@ elf_fs_readdir(const char *path,
                off_t offset,
                struct fuse_file_info *info)
 {
+        telf_ctx *ctx = fuse_get_context()->private_data;
         int ret;
         telf_status rc;
-        telf_obj *obj;
 
         DEBUG("path=%s", path);
 
-        rc = elf_namei(ctx, path, &obj);
-        if (ELF_SUCCESS != rc) {
-                ERR("can't find object with key '%s': %s",
-                    path, elf_status_to_str(rc));
-                ret = -ENOENT;
-                goto end;
-        }
-
-        rc = obj->driver->readdir(obj, data, fill);
+        rc = ctx->driver->readdir(ctx, path, data, fill);
         if (ELF_SUCCESS != rc) {
                 ERR("readdir failed: %s", elf_status_to_str(rc));
                 ret = -EIO;
@@ -603,9 +542,8 @@ elf_fs_readlink(const char *path,
                 char *buf,
                 size_t bufsiz)
 {
-        telf_fs_driver *driver;
+        telf_ctx *ctx = fuse_get_context()->private_data;
         telf_stat est;
-        telf_obj *obj = NULL;
         telf_status rc;
         int ret;
         size_t buf_len;
@@ -613,13 +551,7 @@ elf_fs_readlink(const char *path,
 
         DEBUG("%s", path);
 
-        rc = elf_namei(ctx, path, &obj);
-        if (ELF_SUCCESS != rc) {
-                ret = -ENOENT;
-                goto end;
-        }
-
-        rc = obj->driver->readlink(obj, &tmpbuf, &buf_len);
+        rc = ctx->driver->readlink(ctx, path, &tmpbuf, &buf_len);
         if (ELF_SUCCESS != rc) {
                 ERR("readlink failed: %s", elf_status_to_str(rc));
                 ret = rc;
@@ -641,21 +573,11 @@ int
 elf_fs_release(const char *path,
                struct fuse_file_info *info)
 {
-        telf_obj *obj = (telf_obj *) info->fh;
+        telf_ctx *ctx = fuse_get_context()->private_data;
         int ret;
         telf_status rc;
 
-        if (! obj) {
-                rc = elf_namei(ctx, path, &obj);
-                if (ELF_SUCCESS != rc) {
-                        ERR("can't find object with key '%s': %s",
-                            path, elf_status_to_str(rc));
-                        ret = -ENOENT;
-                        goto end;
-                }
-        }
-
-        rc = obj->driver->release(obj);
+        rc = ctx->driver->release(ctx, path);
         if (ELF_SUCCESS != rc) {
                 ERR("release failed: %s", elf_status_to_str(rc));
                 ret = -EIO;

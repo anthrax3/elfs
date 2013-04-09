@@ -128,17 +128,17 @@ typedef enum {
 } telf_st_flags;
 
 /* file */
-typedef telf_status (* telf_fs_getattr)(void *obj, telf_stat *st);
-typedef telf_status (* telf_fs_open)(void *obj);
-typedef telf_status (* telf_fs_release)(void *obj);
-typedef telf_status (* telf_fs_read)(void *obj, char *buf, size_t size, off_t offset, ssize_t *sizep);
-typedef telf_status (* telf_fs_write)(void *obj, const char *buf, size_t size, off_t offset, ssize_t *sizep);
+typedef telf_status (* telf_fs_getattr)(void *, const char *, telf_stat *);
+typedef telf_status (* telf_fs_open)(void *, const char *, void **);
+typedef telf_status (* telf_fs_release)(void *, const char *);
+typedef telf_status (* telf_fs_read)(void *, const char *, char *, size_t, off_t, ssize_t *);
+typedef telf_status (* telf_fs_write)(void *, const char *, const char *, size_t, off_t, ssize_t *);
 /* directory */
-typedef telf_status (* telf_fs_opendir)(char *name, void **objp);
-typedef telf_status (* telf_fs_readdir)(void *obj, void *data, fuse_fill_dir_t fill);
-typedef telf_status (* telf_fs_releasedir)(void *obj);
+typedef telf_status (* telf_fs_opendir)(char *, void **);
+typedef telf_status (* telf_fs_readdir)(void *, const char *, void *, fuse_fill_dir_t);
+typedef telf_status (* telf_fs_releasedir)(void *, const char *);
 /* links */
-typedef telf_status (* telf_fs_readlink)(void *obj, char **bufp, size_t *buf_lenp);
+typedef telf_status (* telf_fs_readlink)(void *, const char *, char **, size_t *);
 
 typedef struct {
         telf_fs_getattr getattr;

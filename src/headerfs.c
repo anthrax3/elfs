@@ -319,14 +319,28 @@ static telf_fcb headerfs_fcb[] = {
 };
 
 static telf_status
-headerfs_release(void *obj_hdl)
+headerfs_release(void *ctx_hdl,
+                 const char *path)
 {
-        telf_obj *obj = obj_hdl;
+        telf_ctx *ctx = ctx_hdl;
+        telf_obj *obj = NULL;
         telf_fcb *fcb = NULL;
         telf_status ret;
         telf_status rc;
+        int locked = 0;
+
+        elf_ctx_lock(ctx);
+
+        rc = elf_namei(ctx, path, &obj);
+        if (ELF_SUCCESS != rc) {
+                ERR("namei(%s) failed: %d", path, rc);
+                ret = -ENOENT;
+                goto end;
+        }
 
         elf_obj_lock(obj);
+        locked = 1;
+
         elf_obj_unref_nolock(obj);
 
         DEBUG("name:%s data=%p", obj->name, obj->data);
@@ -358,7 +372,10 @@ headerfs_release(void *obj_hdl)
         ret = ELF_SUCCESS;
   end:
 
-        elf_obj_unlock(obj);
+        if (locked)
+                elf_obj_unlock(obj);
+
+        elf_ctx_unlock(ctx);
 
         return ret;
 }
