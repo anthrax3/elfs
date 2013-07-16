@@ -23,6 +23,19 @@ elf_status_to_str(telf_status status)
         return elf_status_names[status];
 }
 
+int
+elf_status_to_errno(telf_status status)
+{
+        switch (status) {
+        case ELF_ENOENT: return ENOENT;
+        case ELF_ENOMEM: return ENOMEM;
+        case ELF_EPERM: return EPERM;
+        case ELF_EIO: return EIO;
+        case ELF_SUCCESS: return 0;
+        default: return EINVAL;
+        }
+}
+
 
 telf_status
 binary_to_asm(char *obj_path,

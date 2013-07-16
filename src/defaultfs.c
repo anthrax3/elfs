@@ -29,7 +29,7 @@ defaultfs_getattr(void *ctx_hdl,
         rc = elf_namei(ctx, path, &obj);
         if (ELF_SUCCESS != rc) {
                 ERR("namei(%s) failed: %d", path, rc);
-                ret = -ENOENT;
+                ret = ELF_ENOENT;
                 goto end;
         }
 
@@ -87,7 +87,7 @@ defaultfs_open(void *ctx_hdl,
         rc = elf_namei(ctx, path, &obj);
         if (ELF_SUCCESS != rc) {
                 ERR("namei(%s) failed: %d", path, rc);
-                ret = -ENOENT;
+                ret = ELF_ENOENT;
                 goto end;
         }
 
@@ -147,7 +147,7 @@ defaultfs_release(void *ctx_hdl,
         rc = elf_namei(ctx, path, &obj);
         if (ELF_SUCCESS != rc) {
                 ERR("namei(%s) failed: %d", path, rc);
-                ret = -ENOENT;
+                ret = ELF_ENOENT;
                 goto end;
         }
 
@@ -200,7 +200,7 @@ defaultfs_read(void *ctx_hdl,
         rc = elf_namei(ctx, path, &obj);
         if (ELF_SUCCESS != rc) {
                 ERR("namei(%s) failed: %d", path, rc);
-                ret = -ENOENT;
+                ret = ELF_ENOENT;
                 goto end;
         }
 
@@ -255,7 +255,7 @@ defaultfs_write(void *ctx_hdl,
         rc = elf_namei(ctx, path, &obj);
         if (ELF_SUCCESS != rc) {
                 ERR("namei(%s) failed: %d", path, rc);
-                ret = -ENOENT;
+                ret = ELF_ENOENT;
                 goto end;
         }
 
@@ -398,7 +398,7 @@ defaultfs_readdir(void *ctx_hdl,
         if (ELF_SUCCESS != rc) {
                 ERR("can't find object with key '%s': %s",
                     path, elf_status_to_str(rc));
-                ret = -ENOENT;
+                ret = ELF_ENOENT;
                 goto end;
         }
 

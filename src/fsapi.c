@@ -356,7 +356,7 @@ elf_fs_getattr(const char *path,
         rc = ctx->driver->getattr(ctx, path, &est);
         if (ELF_SUCCESS != rc) {
                 ERR("getattr failed: %s", elf_status_to_str(rc));
-                ret = rc;
+                ret = -elf_status_to_errno(rc);
                 goto end;
         }
 
@@ -439,7 +439,7 @@ elf_fs_open(const char *path,
         rc = ctx->driver->open(ctx, path, (void **) &obj);
         if (ELF_SUCCESS != rc) {
                 ERR("open failed: %s", elf_status_to_str(rc));
-                ret = -EIO;
+                ret = -elf_status_to_errno(rc);
                 goto end;
         }
 
@@ -468,7 +468,7 @@ elf_fs_read(const char *path,
         if (rc != ELF_SUCCESS) {
                 ERR("%s: can't read %zu bytes @offset: %zd: %s",
                     path, size, offset, elf_status_to_str(rc));
-                ret = -EIO;
+                ret = -elf_status_to_errno(rc);
                 goto end;
         }
 
@@ -495,7 +495,7 @@ elf_fs_write(const char *path,
         if (ELF_SUCCESS != rc) {
                 ERR("%s: can't write %zu bytes @offset: %zd: %s",
                     path, size, offset, elf_status_to_str(rc));
-                ret = -EIO;
+                ret = -elf_status_to_errno(rc);
                 goto end;
         }
 
@@ -527,7 +527,7 @@ elf_fs_readdir(const char *path,
         rc = ctx->driver->readdir(ctx, path, data, fill);
         if (ELF_SUCCESS != rc) {
                 ERR("readdir failed: %s", elf_status_to_str(rc));
-                ret = -EIO;
+                ret = -elf_status_to_errno(rc);
                 goto end;
         }
 
@@ -554,7 +554,7 @@ elf_fs_readlink(const char *path,
         rc = ctx->driver->readlink(ctx, path, &tmpbuf, &buf_len);
         if (ELF_SUCCESS != rc) {
                 ERR("readlink failed: %s", elf_status_to_str(rc));
-                ret = rc;
+                ret = -elf_status_to_errno(rc);
                 goto end;
         }
 
@@ -580,7 +580,7 @@ elf_fs_release(const char *path,
         rc = ctx->driver->release(ctx, path);
         if (ELF_SUCCESS != rc) {
                 ERR("release failed: %s", elf_status_to_str(rc));
-                ret = -EIO;
+                ret = -elf_status_to_errno(rc);
                 goto end;
         }
 
