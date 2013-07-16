@@ -155,13 +155,13 @@ elf_ctx_unlock(telf_ctx *ctx)
 void
 elf_obj_lock(telf_obj *obj)
 {
-        pthread_mutex_lock(&obj->lock);
+        /* pthread_mutex_lock(&obj->lock); */
 }
 
 void
 elf_obj_unlock(telf_obj *obj)
 {
-        pthread_mutex_unlock(&obj->lock);
+        /* pthread_mutex_unlock(&obj->lock); */
 }
 
 static void
