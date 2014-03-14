@@ -18,7 +18,7 @@ DESTBINDIR=$(DESTDIR)/bin
 SRC=$(wildcard $(SRCDIR)/*.c)
 OBJS=$(addprefix $(OBJDIR)/,$(patsubst %.c,%.o,$(notdir $(SRC))))
 
-COMMON_CFLAGS=-D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -I$(INCDIR) -I/usr/local/include
+COMMON_CFLAGS=-D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -I$(INCDIR) -I/usr/local/include -Wall -Wextra -Werror -std=c99
 COMMON_LDFLAGS=-lfuse -L /usr/local/lib
 
 PROD_CFLAGS=-O3 $(COMMON_CFLAGS)

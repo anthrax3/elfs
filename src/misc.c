@@ -16,7 +16,8 @@ memread(pid_t pid,
         void *outp,
         size_t len)
 {
-	int i, count;
+        int i;
+        size_t count;
 	long word;
 	unsigned long *ptr =  outp;
         int ret;

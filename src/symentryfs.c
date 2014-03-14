@@ -32,7 +32,6 @@ symentryfs_read_asmcode(void *obj_hdl,
         telf_status ret;
         telf_status rc;
         ElfW(Sym) *sym = obj->parent->data;
-        ElfW(Shdr) *shdr = obj->ctx->shdr + sym->st_shndx;
         char *buf = NULL;
         size_t buf_len = 0;
         size_t offset;
@@ -72,7 +71,6 @@ symentryfs_read_bincode(void *obj_hdl,
         telf_obj *obj = obj_hdl;
         telf_status ret;
         ElfW(Sym) *sym = obj->parent->data;
-        ElfW(Shdr) *shdr = obj->ctx->shdr + sym->st_shndx;
         char *buf = NULL;
         size_t buf_len = 0;
         size_t offset;
@@ -164,9 +162,9 @@ symentryfs_read_info(void *obj_hdl,
 
 
 static telf_fcb symentryfs_fcb[] = {
-        { "code.bin", symentryfs_read_bincode, symentryfs_freecontent },
-        { "code.asm", symentryfs_read_asmcode, symentryfs_freecontent },
-        { "info",     symentryfs_read_info,    symentryfs_freecontent },
+        { "code.bin", symentryfs_read_bincode, symentryfs_freecontent, NULL },
+        { "code.asm", symentryfs_read_asmcode, symentryfs_freecontent, NULL },
+        { "info",     symentryfs_read_info,    symentryfs_freecontent, NULL },
 };
 
 
@@ -174,12 +172,9 @@ telf_status
 symentryfs_build(telf_ctx *ctx,
                  telf_obj *parent)
 {
-        telf_status ret;
-        telf_status rc;
         telf_obj *entry = NULL;
-        int i;
 
-        for (i = 0; i < N_ELEMS(symentryfs_fcb); i++) {
+        for (size_t i = 0; i < N_ELEMS(symentryfs_fcb); i++) {
                 telf_fcb *fcb = symentryfs_fcb + i;
 
                 entry = elf_obj_new(ctx, fcb->str, parent,
@@ -197,7 +192,5 @@ symentryfs_build(telf_ctx *ctx,
         }
 
 
-        ret = ELF_SUCCESS;
-  end:
-        return ret;
+        return ELF_SUCCESS;
 }

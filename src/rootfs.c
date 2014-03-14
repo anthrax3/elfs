@@ -16,14 +16,11 @@
 telf_status
 rootfs_build(telf_ctx *ctx)
 {
-        telf_status rc;
         telf_status ret;
         telf_obj *root_obj = NULL;
         telf_obj *sections_obj = NULL;
         telf_obj *libs_obj = NULL;
         telf_obj *header_obj = NULL;
-        telf_obj *entry = NULL;
-        int i;
 
         root_obj = elf_obj_new(ctx, "/", NULL,
                                ELF_ROOTDIR,

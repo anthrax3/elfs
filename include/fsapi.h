@@ -45,7 +45,5 @@ int elf_fs_write(const char *, const char *, size_t, off_t, struct fuse_file_inf
 void *elf_fs_init(struct fuse_conn_info *);
 // void elf_fs_destroy(void *);
 
-telf_status elf_namei(telf_ctx *, const char *, telf_obj **objp);
-
 
 #endif /* FSAPI_H */

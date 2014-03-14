@@ -155,12 +155,14 @@ elf_ctx_unlock(telf_ctx *ctx)
 void
 elf_obj_lock(telf_obj *obj)
 {
+        (void) obj;
         /* pthread_mutex_lock(&obj->lock); */
 }
 
 void
 elf_obj_unlock(telf_obj *obj)
 {
+        (void) obj;
         /* pthread_mutex_unlock(&obj->lock); */
 }
 
@@ -363,7 +365,6 @@ elf_set_headers(telf_ctx *ctx)
         ctx->phdr = (ElfW(Phdr) *) (ctx->addr + ctx->ehdr->e_phoff);
 
         ret = ELF_SUCCESS;
-  end:
         return ret;
 }
 
@@ -574,7 +575,7 @@ atopriority(char *str)
         return -1;
 }
 
-static const char *
+__attribute__((unused)) static const char *
 prioritytoa(int priority)
 {
         int i;

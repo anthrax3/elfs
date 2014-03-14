@@ -390,10 +390,8 @@ telf_status
 headerfs_build(telf_ctx *ctx)
 {
         telf_obj *header_obj = NULL;
-        telf_obj *section = NULL;
         telf_status ret;
         telf_status rc;
-        int i;
 
         rc = elf_namei(ctx, "/header", &header_obj);
         if (ELF_SUCCESS != rc) {
@@ -404,7 +402,7 @@ headerfs_build(telf_ctx *ctx)
         }
 
         /* now add the pseudo files */
-        for (i = 0; i < N_ELEMS(headerfs_fcb); i++) {
+        for (size_t i = 0; i < N_ELEMS(headerfs_fcb); i++) {
                 telf_obj *entry = NULL;
                 telf_fcb *fcb = headerfs_fcb + i;
 

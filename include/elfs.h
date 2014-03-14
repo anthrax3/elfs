@@ -97,11 +97,14 @@ typedef struct self_ctx {
 } telf_ctx;
 
 
+
+telf_status elf_namei(telf_ctx *, const char *, telf_obj **objp);
+
 telf_fcb *elf_get_fcb(telf_fcb *fcb, int n_fcb, char *ident);
 telf_obj *elf_obj_new(telf_ctx *, char *, telf_obj *, telf_type, telf_ftype);
 void elf_obj_free(telf_obj *obj);
 
-void delf_ctx_lock(telf_ctx *ctx);
+void elf_ctx_lock(telf_ctx *ctx);
 void elf_ctx_unlock(telf_ctx *ctx);
 
 void elf_obj_lock(telf_obj *obj);

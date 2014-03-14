@@ -111,8 +111,8 @@ programfs_read_bincode(void *obj_hdl,
 }
 
 static telf_fcb programfs_fcb[] = {
-        { "code",     programfs_read_bincode, programfs_freecontent },
-        { "code.asm", programfs_read_asmcode, programfs_freecontent },
+        { "code",     programfs_read_bincode, programfs_freecontent, NULL },
+        { "code.asm", programfs_read_asmcode, programfs_freecontent, NULL },
 };
 
 
@@ -120,12 +120,12 @@ static void
 section_ctor_cb(void *obj_hdl,
                 void *to_ignore)
 {
-        int i;
         telf_obj *obj = obj_hdl;
         telf_obj *entry = NULL;
-        telf_status rc;
         ElfW(Shdr) *shdr = NULL;
         char realname[128];
+
+        (void) to_ignore;
 
         sprintf(realname, ".%s", obj->name);
         shdr = elf_getsectionbyname(obj->ctx, realname);
@@ -140,7 +140,7 @@ section_ctor_cb(void *obj_hdl,
         if (! (SHF_EXECINSTR & shdr->sh_flags))
                 return;
 
-        for (i = 0; i < N_ELEMS(programfs_fcb); i++) {
+        for (size_t i = 0; i < N_ELEMS(programfs_fcb); i++) {
                 telf_fcb *fcb = programfs_fcb + i;
 
                 entry = elf_obj_new(obj->ctx, fcb->str, obj,
@@ -163,10 +163,8 @@ telf_status
 programfs_build(telf_ctx *ctx)
 {
         telf_obj *obj_sections = NULL;
-        telf_obj *section = NULL;
         telf_status ret;
         telf_status rc;
-        int i;
 
         rc = elf_namei(ctx, "/sections", &obj_sections);
         if (ELF_SUCCESS != rc) {

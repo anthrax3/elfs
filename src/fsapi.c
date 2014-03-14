@@ -25,10 +25,13 @@ elf_set_open_flags(int flags)
         return open_flags;
 }
 
-static int
+__attribute__((unused)) static int
 elf_check_cred(telf_open_flags open_flags,
                telf_ftype mode)
 {
+        (void) open_flags;
+        (void) mode;
+
         return 0;
 }
 
@@ -159,6 +162,9 @@ elf_fs_getxattr(const char *path,
                 char *value,
                 size_t size)
 {
+        (void) name;
+        (void) size;
+
         DEBUG("path=%s, value=%s", path, value);
         return 0;
 }
@@ -218,6 +224,8 @@ elf_fs_releasedir(const char *path,
         int ret;
         telf_status rc;
 
+        (void) info;
+
         DEBUG("%s", path);
 
         rc = ctx->driver->releasedir(ctx, path);
@@ -247,6 +255,8 @@ elf_fs_fsyncdir(const char *path,
 void *
 elf_fs_init(struct fuse_conn_info *conn)
 {
+        (void) conn;
+
         return fuse_get_context()->private_data;
 }
 
@@ -374,7 +384,9 @@ elf_fs_chmod(const char *path,
              mode_t mode)
 {
         (void) mode;
+
         DEBUG("%s", path);
+
         return 0;
 }
 
@@ -384,6 +396,7 @@ elf_fs_chown(const char *path,
              gid_t gid)
 {
         DEBUG("%s: uid=%u, gid=%u", path, uid, gid);
+
         return 0;
 }
 
@@ -396,6 +409,7 @@ elf_fs_create(const char *path,
         (void) info;
 
         DEBUG("%s", path);
+
         return 0;
 }
 
@@ -404,6 +418,10 @@ elf_fs_fsync(const char *path,
              int issync,
              struct fuse_file_info *info)
 {
+        (void) path;
+        (void) issync;
+        (void) info;
+
         return 0;
 }
 
@@ -411,6 +429,9 @@ int
 elf_fs_mkdir(const char *path,
              mode_t mode)
 {
+        (void) path;
+        (void) mode;
+
         return 0;
 }
 
@@ -419,6 +440,10 @@ elf_fs_mknod(const char *path,
              mode_t mode,
              dev_t dev)
 {
+        (void) path;
+        (void) mode;
+        (void) dev;
+
         return 0;
 }
 
@@ -435,6 +460,7 @@ elf_fs_open(const char *path,
         DEBUG("path=%s", path);
 
         open_flags = elf_set_open_flags(info->flags);
+        (void) open_flags;
 
         rc = ctx->driver->open(ctx, path, (void **) &obj);
         if (ELF_SUCCESS != rc) {
@@ -461,6 +487,8 @@ elf_fs_read(const char *path,
         telf_status ret;
         telf_status rc;
         ssize_t cc;
+
+        (void) info;
 
         DEBUG("path=%s", path);
 
@@ -489,6 +517,8 @@ elf_fs_write(const char *path,
         telf_status rc;
         ssize_t cc;
 
+        (void) info;
+
         DEBUG("path=%s", path);
 
         rc = ctx->driver->write(ctx, path, buf, size, offset, &cc);
@@ -508,6 +538,9 @@ int
 elf_fs_opendir(const char *path,
                struct fuse_file_info *info)
 {
+        (void) path;
+        (void) info;
+
         return 0;
 }
 
@@ -521,6 +554,9 @@ elf_fs_readdir(const char *path,
         telf_ctx *ctx = fuse_get_context()->private_data;
         int ret;
         telf_status rc;
+
+        (void) info;
+        (void) offset;
 
         DEBUG("path=%s", path);
 
@@ -543,11 +579,12 @@ elf_fs_readlink(const char *path,
                 size_t bufsiz)
 {
         telf_ctx *ctx = fuse_get_context()->private_data;
-        telf_stat est;
         telf_status rc;
         int ret;
         size_t buf_len;
         char *tmpbuf = NULL;
+
+        (void) bufsiz;
 
         DEBUG("%s", path);
 
@@ -577,6 +614,8 @@ elf_fs_release(const char *path,
         int ret;
         telf_status rc;
 
+        (void) info;
+
         rc = ctx->driver->release(ctx, path);
         if (ELF_SUCCESS != rc) {
                 ERR("release failed: %s", elf_status_to_str(rc));
@@ -593,12 +632,17 @@ int
 elf_fs_rename(const char *oldpath,
               const char *newpath)
 {
+        (void) oldpath;
+        (void) newpath;
+
         return 0;
 }
 
 int
 elf_fs_rmdir(const char *path)
 {
+        (void) path;
+
         return 0;
 }
 
@@ -609,6 +653,12 @@ elf_fs_setxattr(const char *path,
                 size_t size,
                 int flag)
 {
+        (void) path;
+        (void) name;
+        (void) value;
+        (void) size;
+        (void) flag;
+
         return 0;
 }
 
@@ -633,12 +683,17 @@ int
 elf_fs_symlink(const char *oldpath,
                const char *newpath)
 {
+        (void) oldpath;
+        (void) newpath;
+
         return 0;
 }
 
 int
 elf_fs_unlink(const char *path)
 {
+        (void) path;
+
         return 0;
 }
 

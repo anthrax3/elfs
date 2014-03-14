@@ -71,12 +71,9 @@ defaultfs_open(void *ctx_hdl,
                void **obj_hdlp)
 {
         telf_ctx *ctx = ctx_hdl;
-        telf_obj **objp = (telf_obj **) obj_hdlp;
         telf_obj *obj = NULL;
         telf_status ret;
         telf_status rc;
-        char *buf;
-        size_t buf_len;
         telf_default_content *content;
         int locked = 0;
 
@@ -291,6 +288,9 @@ static telf_status
 defaultfs_opendir(char *path,
                   void **objp)
 {
+        (void) path;
+        (void) objp;
+
         return ELF_SUCCESS;
 }
 
@@ -436,15 +436,23 @@ static telf_status
 defaultfs_releasedir(void *obj,
                      const char *path)
 {
+        (void) obj;
+        (void) path;
+
         return ELF_SUCCESS;
 }
 
 static telf_status
-defaultfs_readlink(void *ctx_hdl,
+defaultfs_readlink(void *obj,
                    const char *path,
                    char **bufp,
                    size_t *buf_lenp)
 {
+        (void) obj;
+        (void) path;
+        (void) bufp;
+        (void) buf_lenp;
+
         return ELF_SUCCESS;
 }
 

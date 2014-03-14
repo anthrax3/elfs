@@ -71,6 +71,10 @@ libfs_open(void *ctx_hdl,
            const char *path,
            void **objp)
 {
+        (void) ctx_hdl;
+        (void) path;
+        (void) objp;
+
         return ELF_FAILURE;
 }
 
@@ -85,7 +89,6 @@ libfs_getattr(void *ctx_hdl,
         telf_status ret;
         telf_status rc;
         telf_stat st;
-        int i;
         telf_libpath *lp;
         int locked = 0;
 
@@ -201,8 +204,6 @@ elf_libpath_ctor(telf_ctx *ctx)
 {
         telf_status ret;
         telf_status rc;
-        int iret;
-        tlist *libpath = NULL;
         FILE *ldd = NULL;
         telf_obj *libfs_obj = NULL;
         telf_obj *entry = NULL;
@@ -240,7 +241,6 @@ elf_libpath_ctor(telf_ctx *ctx)
 			unsigned int x;
 			char path[PATH_MAX] = "";
                         char name[1024] = "";
-                        char *buf = NULL;
                         telf_libpath *lp = NULL;
 
                         if (! strstr(cmd, " => "))
