@@ -116,7 +116,7 @@ elf_namei(telf_ctx *ctx,
 
                 current = strndup(start, (size_t) (p - start));
                 if (! current) {
-                        ERR("strndupa: %s", strerror(errno));
+                        ERR("strndup: %s", strerror(errno));
                         ret = ELF_ENOMEM;
                         goto end;
                 }
@@ -125,6 +125,7 @@ elf_namei(telf_ctx *ctx,
                 if (! parent->entries) {
                         ERR("no entries for parent '%s'",
                             parent->name);
+                        free(current);
                         ret = ELF_ENOENT;
                         goto end;
                 }
@@ -132,6 +133,7 @@ elf_namei(telf_ctx *ctx,
                 obj = list_get(parent->entries, current);
                 if (! obj) {
                         ERR("can't get entry '%s'", current);
+                        free(current);
                         ret = ELF_ENOENT;
                         goto end;
                 }
