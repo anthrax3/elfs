@@ -110,9 +110,9 @@ If you want to inspect the sections:
 
 We set the rwx bits, according to the Section Header flags:
 
-   SHR_WRITE    : w bit
-   SHR_ALLOC    : r bit
-   SHR_EXECINSTR: x bit
+    SHR_WRITE    : w bit
+    SHR_ALLOC    : r bit
+    SHR_EXECINSTR: x bit
 
 
 You can read the whole program binary code (in assembler) with the following command:
