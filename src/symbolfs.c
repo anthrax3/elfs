@@ -93,7 +93,6 @@ symbolfs_dynsym_build(telf_ctx *ctx)
         telf_obj *obj = NULL;
         telf_obj *dynsym_obj = NULL;
         char *name = NULL;
-        char path[256];
         ElfW(Shdr) *shdr = NULL;
 
         rc = elf_namei(ctx, "/sections/dynsym", &dynsym_obj);
@@ -119,6 +118,7 @@ symbolfs_dynsym_build(telf_ctx *ctx)
 
         ElfW(Sym) *sym = NULL;
         for (i = 0; i < ctx->n_dsyms; i++) {
+                char *path = NULL;
                 sym = elf_getndsym(ctx, i);
                 assert(NULL != sym);
 
@@ -126,19 +126,31 @@ symbolfs_dynsym_build(telf_ctx *ctx)
                 assert(NULL != name);
 
                 if ('\0' == *name) {
-                        sprintf(path, "noname.%p", (void *) sym);
+                        if (asprintf(&path, "noname.%p", (void *) sym) < 0) {
+                                ERR();
+                                ret = ELF_ENOMEM;
+                                goto end;
+                        }
                 } else {
-                        sprintf(path, "%s", name);
+                        path = strdup(name);
+                        if (! path) {
+                                ERR();
+                                ret = ELF_ENOMEM;
+                                goto end;
+                        }
                 }
 
                 obj = elf_obj_new(ctx, path, dynsym_obj,
                                   ELF_SYMBOL,
                                   ELF_S_IFDIR);
                 if (! obj) {
+                        free(path);
                         ERR("object creation '%s' failed", path);
                         ret = ELF_FAILURE;
                         goto end;
                 }
+
+                free(path);
 
                 rc = symentryfs_build(ctx, obj);
                 if (ELF_SUCCESS != rc) {
