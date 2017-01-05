@@ -20,7 +20,6 @@ symbolfs_symtab_build(telf_ctx *ctx)
         telf_obj *symtab_obj = NULL;
         telf_obj *obj = NULL;
         char *name = NULL;
-        char path[256];
         ElfW(Shdr) *shdr = NULL;
 
         rc = elf_namei(ctx, "/sections/symtab", &symtab_obj);
@@ -44,6 +43,7 @@ symbolfs_symtab_build(telf_ctx *ctx)
 
         ElfW(Sym) *sym = NULL;
         for (i = 0; i < ctx->n_syms; i++) {
+                char *path = NULL;
                 sym = elf_getnsym(ctx, i);
                 assert(NULL != sym);
 
@@ -51,9 +51,18 @@ symbolfs_symtab_build(telf_ctx *ctx)
                 assert(NULL != name);
 
                 if ('\0' == *name) {
-                        sprintf(path, "noname.%p", (void *) sym);
+                        if (asprintf(&path, "noname.%p", (void *) sym) < 0) {
+                                ERR("asprintf: %s", strerror(errno));
+                                ret = ELF_ENOMEM;
+                                goto end;
+                        }
                 } else {
-                        sprintf(path, "%s", name);
+                        path = strdup(name);
+                        if (! path) {
+                                ERR("strdup: %s", strerror(errno));
+                                ret = ELF_ENOMEM;
+                                goto end;
+                        }
                 }
 
                 obj = elf_obj_new(ctx, path, symtab_obj,
@@ -61,6 +70,7 @@ symbolfs_symtab_build(telf_ctx *ctx)
                                   ELF_S_IFDIR);
                 if (! obj) {
                         ERR("object creation '%s' failed", path);
+                        free(path);
                         ret = ELF_FAILURE;
                         goto end;
                 }
@@ -69,6 +79,7 @@ symbolfs_symtab_build(telf_ctx *ctx)
                 if (ELF_SUCCESS != rc) {
                         ERR("symentryfs creation failed: %s",
                             elf_status_to_str(rc));
+                        free(path);
                         ret = rc;
                         goto end;
                 }
@@ -77,6 +88,7 @@ symbolfs_symtab_build(telf_ctx *ctx)
 
                 DEBUG("adding to symtab: %s", path);
                 list_add(symtab_obj->entries, obj);
+                free(path);
         }
 
         ret = ELF_SUCCESS;
@@ -127,14 +139,14 @@ symbolfs_dynsym_build(telf_ctx *ctx)
 
                 if ('\0' == *name) {
                         if (asprintf(&path, "noname.%p", (void *) sym) < 0) {
-                                ERR();
+                                ERR("asprintf: %s", strerror(errno));
                                 ret = ELF_ENOMEM;
                                 goto end;
                         }
                 } else {
                         path = strdup(name);
                         if (! path) {
-                                ERR();
+                                ERR("strdup: %s", strerror(errno));
                                 ret = ELF_ENOMEM;
                                 goto end;
                         }
